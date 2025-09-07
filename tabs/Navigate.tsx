@@ -5,7 +5,7 @@ import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function Settings() {
+export default function Navigate() {
 
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
