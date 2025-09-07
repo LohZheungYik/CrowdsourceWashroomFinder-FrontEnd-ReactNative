@@ -10,6 +10,8 @@ import AddWC from './tabs/AddWC';
 import WcDetails from './tabs/WcDetails';
 import Login from './tabs/Login';
 import Register from './tabs/Register';
+import Test from './tabs/Test';
+
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Tab = createBottomTabNavigator();
@@ -25,8 +27,8 @@ export default function App() {
           <Tab.Screen name="Survey" component={Survey} />
           <Tab.Screen name="AddWC" component={AddWC} />
           <Tab.Screen name="WcDetails" component={WcDetails} />
-          <Tab.Screen name="Register" component={Register} />
-        
+          <Tab.Screen name="Test" component={Test} />
+
         </Tab.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

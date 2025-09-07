@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
 
 export default function FindWC() {
 
@@ -33,82 +34,97 @@ export default function FindWC() {
     id: string;
     name: string;
     description: string;
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lng: number;
     rating: number; // 1 to 5
     isDisableFriendly: boolean;
     isPregnantFriendly: boolean;
     isBabyFriendly: boolean;
   }
 
-  const places: Place[] = [
-    {
-      id: '1',
-      name: 'TRX Premium Toilet',
-      description: 'Ground floor near the chop shop',
-      latitude: 3.1390,
-      longitude: 101.6869,
-      rating: 5,
-      isDisableFriendly: true,
-      isPregnantFriendly: false,
-      isBabyFriendly: true,
-    },
-    {
-      id: '2',
-      name: 'KLCC Toilet',
-      description: 'Inside Suria KLCC, near the elevator',
-      latitude: 3.1579,
-      longitude: 101.7120,
-      rating: 4,
-      isDisableFriendly: true,
-      isPregnantFriendly: true,
-      isBabyFriendly: true,
-    },
-    {
-      id: '3',
-      name: 'Bukit Bintang Toilet',
-      description: 'Near Pavilion Mall, level 2',
-      latitude: 3.1460,
-      longitude: 101.7100,
-      rating: 3,
-      isDisableFriendly: false,
-      isPregnantFriendly: true,
-      isBabyFriendly: false,
-    },
-    {
-      id: '4',
-      name: 'Chinatown Toilet',
-      description: 'Public toilet near Petaling Street',
-      latitude: 3.1455,
-      longitude: 101.6950,
-      rating: 2,
-      isDisableFriendly: false,
-      isPregnantFriendly: false,
-      isBabyFriendly: true,
-    },
-    {
-      id: '5',
-      name: 'KL Tower Toilet',
-      description: 'Observation deck, level 3',
-      latitude: 3.1520,
-      longitude: 101.7030,
-      rating: 5,
-      isDisableFriendly: true,
-      isPregnantFriendly: true,
-      isBabyFriendly: false,
-    },
-    {
-      id: '6',
-      name: 'Mid Valley Toilet',
-      description: 'Level 1, near the main entrance',
-      latitude: 3.1162,
-      longitude: 101.6774,
-      rating: 4,
-      isDisableFriendly: true,
-      isPregnantFriendly: false,
-      isBabyFriendly: true,
-    },
-  ];
+  // const places: Place[] = [
+  //   {
+  //     id: '1',
+  //     name: 'TRX Premium Toilet',
+  //     description: 'Ground floor near the chop shop',
+  //     latitude: 3.1390,
+  //     longitude: 101.6869,
+  //     rating: 5,
+  //     isDisableFriendly: true,
+  //     isPregnantFriendly: false,
+  //     isBabyFriendly: true,
+  //   },
+  //   {
+  //     id: '2',
+  //     name: 'KLCC Toilet',
+  //     description: 'Inside Suria KLCC, near the elevator',
+  //     latitude: 3.1579,
+  //     longitude: 101.7120,
+  //     rating: 4,
+  //     isDisableFriendly: true,
+  //     isPregnantFriendly: true,
+  //     isBabyFriendly: true,
+  //   },
+  //   {
+  //     id: '3',
+  //     name: 'Bukit Bintang Toilet',
+  //     description: 'Near Pavilion Mall, level 2',
+  //     latitude: 3.1460,
+  //     longitude: 101.7100,
+  //     rating: 3,
+  //     isDisableFriendly: false,
+  //     isPregnantFriendly: true,
+  //     isBabyFriendly: false,
+  //   },
+  //   {
+  //     id: '4',
+  //     name: 'Chinatown Toilet',
+  //     description: 'Public toilet near Petaling Street',
+  //     latitude: 3.1455,
+  //     longitude: 101.6950,
+  //     rating: 2,
+  //     isDisableFriendly: false,
+  //     isPregnantFriendly: false,
+  //     isBabyFriendly: true,
+  //   },
+  //   {
+  //     id: '5',
+  //     name: 'KL Tower Toilet',
+  //     description: 'Observation deck, level 3',
+  //     latitude: 3.1520,
+  //     longitude: 101.7030,
+  //     rating: 5,
+  //     isDisableFriendly: true,
+  //     isPregnantFriendly: true,
+  //     isBabyFriendly: false,
+  //   },
+  //   {
+  //     id: '6',
+  //     name: 'Mid Valley Toilet',
+  //     description: 'Level 1, near the main entrance',
+  //     latitude: 3.1162,
+  //     longitude: 101.6774,
+  //     rating: 4,
+  //     isDisableFriendly: true,
+  //     isPregnantFriendly: false,
+  //     isBabyFriendly: true,
+  //   },
+  // ];
+
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get("http://192.168.43.233:8000/api/washrooms")
+      .then((response) => {
+        alert(response.data[0].id)
+        setPlaces(response.data);
+      }).catch((error) => {
+        console.error("Error fetching data")
+      }).finally(() => {
+        setLoading(false);
+      })
+  }, [])
 
   const { width, height } = Dimensions.get("window");
   const [selectedTab, setSelectedTab] = React.useState(0);
@@ -202,7 +218,7 @@ export default function FindWC() {
           .map(place => (
             <Marker
               key={place.id} // stable unique key
-              coordinate={{ latitude: place.latitude, longitude: place.longitude }}
+              coordinate={{ latitude: place.lat, longitude: place.lng }}
               onPress={() => {
                 setName(place.name);
                 setDescription(place.description);
