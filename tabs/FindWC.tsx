@@ -8,117 +8,59 @@ import axios from 'axios';
 
 export default function FindWC() {
 
-  type Option = { label: string };
+  type MapFilter = { label: string };
 
-  let options: Option[] = [
+  let mapFilters: MapFilter[] = [
     { label: "All" },
     { label: "Disable friendly" },
     { label: "Baby friendly" },
     { label: "Pregnant friendly" }
   ]
 
-
-
-  type Feature = {
+  type FeatureLabel = {
     label: string,
     color: string
   }
 
-  let features: Feature[] = [
+  let featureLabels: FeatureLabel[] = [
     { label: "♿️ Wheelchair-accessible", color: "rgba(208,232,243, 1)" },
     { label: "👶 Baby-friendly", color: "rgba(223,203,243,1)" },
     { label: "🤰 Pregnancy-friendly", color: "rgba(233, 212, 216, 1)" },
   ];
 
-  type Place = {
-    id: string;
-    name: string;
-    description: string;
-    lat: number;
-    lng: number;
-    rating: number; // 1 to 5
+  type Feature = {
     isDisableFriendly: boolean;
     isPregnantFriendly: boolean;
     isBabyFriendly: boolean;
   }
 
-  // const places: Place[] = [
-  //   {
-  //     id: '1',
-  //     name: 'TRX Premium Toilet',
-  //     description: 'Ground floor near the chop shop',
-  //     latitude: 3.1390,
-  //     longitude: 101.6869,
-  //     rating: 5,
-  //     isDisableFriendly: true,
-  //     isPregnantFriendly: false,
-  //     isBabyFriendly: true,
-  //   },
-  //   {
-  //     id: '2',
-  //     name: 'KLCC Toilet',
-  //     description: 'Inside Suria KLCC, near the elevator',
-  //     latitude: 3.1579,
-  //     longitude: 101.7120,
-  //     rating: 4,
-  //     isDisableFriendly: true,
-  //     isPregnantFriendly: true,
-  //     isBabyFriendly: true,
-  //   },
-  //   {
-  //     id: '3',
-  //     name: 'Bukit Bintang Toilet',
-  //     description: 'Near Pavilion Mall, level 2',
-  //     latitude: 3.1460,
-  //     longitude: 101.7100,
-  //     rating: 3,
-  //     isDisableFriendly: false,
-  //     isPregnantFriendly: true,
-  //     isBabyFriendly: false,
-  //   },
-  //   {
-  //     id: '4',
-  //     name: 'Chinatown Toilet',
-  //     description: 'Public toilet near Petaling Street',
-  //     latitude: 3.1455,
-  //     longitude: 101.6950,
-  //     rating: 2,
-  //     isDisableFriendly: false,
-  //     isPregnantFriendly: false,
-  //     isBabyFriendly: true,
-  //   },
-  //   {
-  //     id: '5',
-  //     name: 'KL Tower Toilet',
-  //     description: 'Observation deck, level 3',
-  //     latitude: 3.1520,
-  //     longitude: 101.7030,
-  //     rating: 5,
-  //     isDisableFriendly: true,
-  //     isPregnantFriendly: true,
-  //     isBabyFriendly: false,
-  //   },
-  //   {
-  //     id: '6',
-  //     name: 'Mid Valley Toilet',
-  //     description: 'Level 1, near the main entrance',
-  //     latitude: 3.1162,
-  //     longitude: 101.6774,
-  //     rating: 4,
-  //     isDisableFriendly: true,
-  //     isPregnantFriendly: false,
-  //     isBabyFriendly: true,
-  //   },
-  // ];
+  // type Review = {
+  //   starRating: number;
+  // }
 
-  const [places, setPlaces] = useState<Place[]>([]);
+  type Washroom = {
+    id: string;
+    name: string;
+    description: string;
+    lat: number;
+    lng: number;
+    //reviews: Review[];
+    features: Feature;
+    avg_rating: number;
+  }
+
+  //
+
+  const [washrooms, setWashrooms] = useState<Washroom[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get("http://192.168.43.233:8000/api/washrooms")
       .then((response) => {
-        alert(response.data[0].id)
-        setPlaces(response.data);
+        //alert(response.data[0].id)
+        setWashrooms(response.data);
+        // alert(response.data[0])
+        
       }).catch((error) => {
         console.error("Error fetching data")
       }).finally(() => {
@@ -134,9 +76,9 @@ export default function FindWC() {
 
   const [name, setName] = React.useState<string>('')
   const [description, setDescription] = React.useState<string>('');
-  // const [isDisableFriendly, setIsDisableFriendly] = React.useState<boolean>(false);
-  // const [isBabyFriend, setIsBabyFriendly] = React.useState<boolean>(false);
-  // const [isPregnantFriendly, setIsPregnantFriendly] = React.useState<boolean>(false);
+  const [isDisableFriendly, setIsDisableFriendly] = React.useState<boolean>(false);
+  const [isBabyFriend, setIsBabyFriendly] = React.useState<boolean>(false);
+  const [isPregnantFriendly, setIsPregnantFriendly] = React.useState<boolean>(false);
   const [rating, setRating] = React.useState<number>(0);
   const [featureList, setFeatureList] = React.useState<boolean[]>([false, false, false]);
 
@@ -174,12 +116,12 @@ export default function FindWC() {
         }} >
 
         {
-          options.map((option, i) => (
+          mapFilters.map((mapFilter, i) => (
             <Pressable key={i} onPress={() => { setSelectedTab(i); }}>
               <View
 
                 style={{
-                  marginRight: i === options.length - 1 ? 0 : 10, // no margin after last item
+                  marginRight: i === mapFilters.length - 1 ? 0 : 10, // no margin after last item
                   borderRadius: 10,
                   backgroundColor: selectedTab === i ? "rgba(218, 254, 207, 1)" : "white",
                   paddingHorizontal: 16,
@@ -188,7 +130,7 @@ export default function FindWC() {
 
                 }}
               >
-                <Text>{option.label}</Text>
+                <Text>{mapFilter.label}</Text>
               </View>
             </Pressable>
           ))
@@ -207,27 +149,29 @@ export default function FindWC() {
           longitudeDelta: 0.05,
         }}
       >
-        {places
-          .filter(place => {
+        {washrooms
+          .filter(washroom => {
             if (selectedTab === 0) return true;
-            if (selectedTab === 1) return place.isDisableFriendly;
-            if (selectedTab === 2) return place.isBabyFriendly;
-            if (selectedTab === 3) return place.isPregnantFriendly;
+            if (selectedTab === 1) return washroom.features.isDisableFriendly;
+            if (selectedTab === 2) return washroom.features.isBabyFriendly;
+            if (selectedTab === 3) return washroom.features.isPregnantFriendly;
             return false;
           })
-          .map(place => (
+          .map(washroom => (
             <Marker
-              key={place.id} // stable unique key
-              coordinate={{ latitude: place.lat, longitude: place.lng }}
+              key={washroom.id} // stable unique key
+              coordinate={{ latitude: washroom.lat, longitude: washroom.lng }}
               onPress={() => {
-                setName(place.name);
-                setDescription(place.description);
+                setName(washroom.name);
+                setDescription(washroom.description);
                 setFeatureList([
-                  place.isDisableFriendly,
-                  place.isBabyFriendly,
-                  place.isPregnantFriendly,
+                  washroom.features.isDisableFriendly,
+                  washroom.features.isBabyFriendly,
+                  washroom.features.isPregnantFriendly,
                 ]);
-                setRating(place.rating);
+                setRating(washroom.avg_rating);
+                
+                
               }}
             />
           ))}
@@ -253,9 +197,9 @@ export default function FindWC() {
 
           }} >
           {
-            features.map((feature, i) => (
-              featureList[i] && <View key={i} style={{ paddingHorizontal: 4, paddingVertical: 2, borderWidth: 0, marginRight: 10, borderRadius: 10, backgroundColor: feature.color, elevation: 4 }}>
-                <Text>{feature.label}</Text>
+            featureLabels.map((featureLabel, i) => (
+              featureList[i] && <View key={i} style={{ paddingHorizontal: 4, paddingVertical: 2, borderWidth: 0, marginRight: 10, borderRadius: 10, backgroundColor: featureLabel.color, elevation: 4 }}>
+                <Text>{featureLabel.label}</Text>
               </View>
             ))
           }
