@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, TextInput, FlatList } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
+import debounce from "lodash.debounce";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types'; // adjust path
+
 
 export default function FindWC() {
 
@@ -49,6 +55,8 @@ export default function FindWC() {
     avg_rating: number;
   }
 
+
+
   //
 
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
@@ -60,7 +68,7 @@ export default function FindWC() {
         //alert(response.data[0].id)
         setWashrooms(response.data);
         // alert(response.data[0])
-        
+
       }).catch((error) => {
         console.error("Error fetching data")
       }).finally(() => {
@@ -74,13 +82,82 @@ export default function FindWC() {
 
   //info box items : name, desc, features, rating
 
+  const [washroomId, setWashroomId] = React.useState<number>(0);
   const [name, setName] = React.useState<string>('')
   const [description, setDescription] = React.useState<string>('');
-  const [isDisableFriendly, setIsDisableFriendly] = React.useState<boolean>(false);
-  const [isBabyFriend, setIsBabyFriendly] = React.useState<boolean>(false);
-  const [isPregnantFriendly, setIsPregnantFriendly] = React.useState<boolean>(false);
   const [rating, setRating] = React.useState<number>(0);
   const [featureList, setFeatureList] = React.useState<boolean[]>([false, false, false]);
+
+  type GoogleMapPlace = {
+    name: string;
+    lat: number;
+    lng: number;
+  }
+
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<GoogleMapPlace[]>([]);
+
+  const fetchSuggestions = async (text: string) => {
+    try {
+      const res = await axios.get("http://192.168.43.233:8000/api/places", {
+        params: { query: text }
+      });
+      setSuggestions(res.data);
+    } catch (err) {
+      console.error("Error fetching suggestions:", err);
+    }
+  }
+
+  const debouncedFetch = useCallback(debounce(fetchSuggestions, 400), []);
+
+  useEffect(() => {
+    return () => {
+      debouncedFetch.cancel();
+    };
+  }, [debouncedFetch])
+
+  const handleChange = (text: string) => {
+    setQuery(text);
+
+    if (text.length > 1) {
+      debouncedFetch(text);
+    } else {
+      setSuggestions([]);
+    }
+  }
+
+  const handleSelect = (place: GoogleMapPlace) => {
+    setQuery(place.name);
+    setSelectedMarker({ lat: place.lat, lng: place.lng });
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: place.lat,
+        longitude: place.lng,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      },
+      1000 // animation duration in ms
+    );
+
+    setSuggestions([]); //close suggestion dropdown
+
+  }
+
+  const [selectedMarker, setSelectedMarker] = useState<{ lat: number; lng: number } | null>(null);
+
+  const mapRef = React.useRef<MapView>(null);
+
+  
+  //const selectedMarkerRef = React.useRef<null | (typeof Marker)>(null);
+  const selectedMarkerRef = React.useRef<any>(null);
+  useEffect(() => {
+    selectedMarkerRef.current?.showCallout();
+  }, [selectedMarker])
+
+  type FindWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
+
+  const navigation = useNavigation<FindWCNavigationProp>();
 
   return (
     <View style={{ flex: 1, flexDirection: "column" }}>
@@ -90,6 +167,8 @@ export default function FindWC() {
 
       <TextInput
         placeholder="🔍 Type here to search...."
+        value={query}
+        onChangeText={handleChange}
         style={{
           width: "90%",
           height: 50,
@@ -103,6 +182,30 @@ export default function FindWC() {
 
         }}
       />
+
+      {suggestions.length > 0 && (
+        <FlatList
+          style={{
+            position: "absolute",
+            top: insets.top + 56 + 30, // just below TextInput
+            width: "90%",
+            backgroundColor: "white",
+            borderRadius: 10,
+            zIndex: 200,
+            maxHeight: 250,
+            marginHorizontal: "5%",
+          }}
+          data={suggestions}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <Pressable onPress={() => handleSelect(item)}>
+              <Text style={{ padding: 12, borderBottomWidth: 0.5, borderColor: "#ddd" }}>
+                {item.name}
+              </Text>
+            </Pressable>
+          )}
+        />
+      )}
 
 
       <ScrollView
@@ -140,6 +243,7 @@ export default function FindWC() {
 
 
       <MapView
+        ref={mapRef}
         key={`map-${selectedTab}`} // force re-render when tab changes
         style={{ flex: 5, zIndex: 1 }}
         initialRegion={{
@@ -149,6 +253,20 @@ export default function FindWC() {
           longitudeDelta: 0.05,
         }}
       >
+        {
+          selectedMarker && (
+            <Marker
+              ref={selectedMarkerRef}
+              coordinate={{
+                latitude: selectedMarker.lat,
+                longitude: selectedMarker.lng
+              }}
+              pinColor="blue"
+              title={"Currently searched Location"}
+              description="Tap on nearby red markers (washrooms)"
+            />
+          )}
+
         {washrooms
           .filter(washroom => {
             if (selectedTab === 0) return true;
@@ -170,8 +288,7 @@ export default function FindWC() {
                   washroom.features.isPregnantFriendly,
                 ]);
                 setRating(washroom.avg_rating);
-                
-                
+                setWashroomId(Number(washroom.id));
               }}
             />
           ))}
@@ -227,7 +344,10 @@ export default function FindWC() {
               marginRight: 8,
               backgroundColor: "rgba(218, 254, 207, 1)",
               opacity: pressed ? 0.7 : 1,
-            }]}>
+            }]}
+            onPress={() => navigation.navigate("WcDetails", { washroomId })}
+            
+          >
 
             <Ionicons name="information-circle" size={16} style={{ marginRight: 6 }} />
             <Text style={{ fontSize: 16 }}>View Details</Text>

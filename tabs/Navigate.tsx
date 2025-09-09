@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,6 +9,9 @@ export default function Navigate() {
 
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
+
+  const start = { latitude: 3.139, longitude: 101.6869 }; // user location
+  const end = { latitude: 1.6304, longitude: 103.6329 };     // destination
 
   return (
     <View style={{ flex: 1, flexDirection: "column" }}>
@@ -31,10 +34,10 @@ export default function Navigate() {
 
         }}
       >
-        <Text style={{fontSize: 15}}>Navigating Towards</Text>
-        <Text style={{fontWeight: "bold", fontSize: 25}} numberOfLines={1}
-    ellipsizeMode="tail">TRX Premium Toilet</Text>
-        
+        <Text style={{ fontSize: 15 }}>Navigating Towards</Text>
+        <Text style={{ fontWeight: "bold", fontSize: 25 }} numberOfLines={1}
+          ellipsizeMode="tail">TRX Premium Toilet</Text>
+
 
       </View>
 
@@ -51,6 +54,13 @@ export default function Navigate() {
           coordinate={{ latitude: 3.139, longitude: 101.6869 }}
           title="You are here"
           description="Kuala Lumpur"
+        />
+        <Marker coordinate={end} title="TRX Premium Toilet" />
+
+        <Polyline
+          coordinates={[start, end]}
+          strokeColor="rgba(77,168,87,1)" // green line
+          strokeWidth={4}
         />
       </MapView>
       <View style={{ flexDirection: "column", position: "absolute", marginBottom: "2%", zIndex: 4, bottom: 0, left: 0, right: 0, height: height * 0.1, marginHorizontal: "2%", borderRadius: 10 }}>

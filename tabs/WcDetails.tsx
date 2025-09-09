@@ -2,15 +2,26 @@ import { View, ScrollView, Text, Dimensions, Image } from 'react-native';
 import React from 'react';
 import { Appbar } from 'react-native-paper';
 
-export default function WcDetails() {
+type WcDetailsProps = {
+    route: {
+        params: {
+            washroomId: number;
+        };
+    };
+};
+
+export default function WcDetails({ route }: WcDetailsProps) {
 
     const { width, height } = Dimensions.get("window");
+    const { washroomId } = route.params;
 
     type ImageUrl = {
         url: number
     }
 
-    let imageUrls : ImageUrl[] = [
+    alert(route.params.washroomId);
+
+    let imageUrls: ImageUrl[] = [
         { url: require("../assets/images/wc2.png") },
         { url: require("../assets/images/wc2.png") },
         { url: require("../assets/images/wc2.png") },
@@ -25,7 +36,7 @@ export default function WcDetails() {
                 <Appbar.Content titleStyle={{ color: "white" }} title="Washroom Details" />
 
             </Appbar.Header>
-            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginVertical: 20}}>
+            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginVertical: 20 }}>
                 <Text style={{ fontWeight: "bold", fontSize: 25 }}
                     ellipsizeMode="tail" >TRX Premium Toilet TRX Premium Toilet TRX Premium Toilet</Text>
             </View>
@@ -43,7 +54,7 @@ export default function WcDetails() {
                 }
             </ScrollView>
 
-            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginVertical: 20}}>
+            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginVertical: 20 }}>
                 <Text style={{ fontSize: 15 }}
                     ellipsizeMode="tail">Ground floor near the chop shop Ground floor near the chop shop Ground floor near the chop shop</Text>
             </View>
