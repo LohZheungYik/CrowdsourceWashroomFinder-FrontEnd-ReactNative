@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Dimensions, Pressable, Platform, PermissionsAndroid } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Appbar } from 'react-native-paper';
@@ -21,21 +21,20 @@ type NavigateProps = {
   };
 };
 
-
 export default function Navigate({ route }: NavigateProps) {
-
   type NavigateNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Navigate'>;
   const navigation = useNavigation<NavigateNavigationProp>();
-
 
   const { height } = Dimensions.get('window');
   const insets = useSafeAreaInsets();
 
-  // alert("destiLat : " + route.params.destiLat);
-  // alert("destiLng : " + route.params.destiLng);
-
-
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mapRoute, setMapRoute] = useState<{ latitude: number; longitude: number }[]>([]);
+
+  // ref to avoid overlapping location requests
+  const fetchingRef = useRef<boolean>(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
@@ -58,64 +57,137 @@ export default function Navigate({ route }: NavigateProps) {
     return true;
   };
 
-  const fetchLocation = async () => {
-    // Ask permission
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
-      alert('Permission Denied');
-      return;
-    }
+  // --- Trim polyline based on closest point to user ---
+  const shortenRoute = (userLat: number, userLng: number) => {
+    setMapRoute((prevMapRoute) => {
+      if (!prevMapRoute.length) return prevMapRoute;
 
-    // get location
-    GetLocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 60000,
-    })
-      .then((loc) => {
-        console.log(loc);
-        setLocation({ latitude: loc.latitude, longitude: loc.longitude });
-      })
-      .catch((error) => {
-        const { code, message } = error;
-        console.warn(code, message);
-        alert(message);
-      });
+      let minDist = Infinity;
+      let closestIndex = 0;
+
+      for (let idx = 0; idx < prevMapRoute.length; idx++) {
+        const point = prevMapRoute[idx];
+        // simple Euclidean on lat/lng (good enough for trimming; for meters use haversine)
+        const d = Math.sqrt(
+          Math.pow(point.latitude - userLat, 2) + Math.pow(point.longitude - userLng, 2)
+        );
+        if (d < minDist) {
+          minDist = d;
+          closestIndex = idx;
+        }
+      }
+
+      // If closestIndex is 0 keep full route; if at end keep last point (destination)
+      if (closestIndex >= prevMapRoute.length - 1) {
+        // user is at/near the last point
+        return prevMapRoute.slice(prevMapRoute.length - 1);
+      }
+
+      return prevMapRoute.slice(closestIndex);
+    });
   };
 
+  // --- Initial fetch of current location + route (runs once) ---
   useEffect(() => {
-    fetchLocation();
-  }, []);
+    let mounted = true;
 
+    const init = async () => {
+      const hasPermission = await requestLocationPermission();
+      if (!hasPermission) {
+        alert('Permission Denied');
+        return;
+      }
 
-  const start = location == null ? { latitude: 3.139, longitude: 101.6869 } : { latitude: location.latitude, longitude: location.longitude };
+      if (!mounted) return;
 
-  const end = { latitude: route.params.destiLat, longitude: route.params.destiLng };  // destination
-
-  const [mapRoute, setMapRoute] = useState<{ latitude: number; longitude: number }[]>([]);
-
-  useEffect(() => {
-    const fetchRoute = async () => {
+      // mark fetching so polling doesn't start overlapping
+      fetchingRef.current = true;
       try {
+        const loc = await GetLocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 60000,
+        });
+
+        if (!mounted) return;
+
+        setLocation({ latitude: loc.latitude, longitude: loc.longitude });
+
+        // Fetch route from Google Directions API (once)
         const res = await fetch(
-          `https://maps.googleapis.com/maps/api/directions/json?origin=${start.latitude},${start.longitude}&destination=${route.params.destiLat},${route.params.destiLng}&key=${GOOGLE_API_KEY}`
+          `https://maps.googleapis.com/maps/api/directions/json?origin=${loc.latitude},${loc.longitude}&destination=${route.params.destiLat},${route.params.destiLng}&key=${GOOGLE_API_KEY}`
         );
         const data = await res.json();
 
-        if (data.routes.length) {
+        if (data.routes && data.routes.length) {
           const points = polyline.decode(data.routes[0].overview_polyline.points);
-          const coords = points.map(([lat, lng]) => ({
+          const coords = points.map(([lat, lng]: [number, number]) => ({
             latitude: lat,
             longitude: lng,
           }));
-          setMapRoute(coords);
+          if (mounted) setMapRoute(coords);
         }
       } catch (err) {
-        console.error('Error fetching directions:', err);
+        console.error('Error initializing navigation:', err);
+      } finally {
+        fetchingRef.current = false;
       }
     };
 
-    fetchRoute();
-  }, [location, route.params]);
+    init();
+
+    return () => {
+      mounted = false;
+    };
+    // run only once on mount
+  }, [route.params]);
+
+  // --- Poll location every 5 seconds (no overlapping calls) ---
+  useEffect(() => {
+    // don't start polling until we've obtained initial route (optional)
+    const startPolling = () => {
+      if (intervalRef.current) return; // already started
+
+      intervalRef.current = setInterval(async () => {
+        // skip if another fetch is in progress
+        if (fetchingRef.current) return;
+
+        fetchingRef.current = true;
+        try {
+          const loc = await GetLocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          });
+
+          const { latitude, longitude } = loc;
+          setLocation({ latitude, longitude });
+
+          // Trim route instead of fetching again
+          shortenRoute(latitude, longitude);
+        } catch (err) {
+          // More informative logging for debugging
+          console.warn('Polling location error:', err);
+        } finally {
+          fetchingRef.current = false;
+        }
+      }, 5000);
+    };
+
+    startPolling();
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      fetchingRef.current = false;
+    };
+  }, []); // empty deps — single interval controlled by refs
+
+  const start = location == null
+    ? { latitude: 3.139, longitude: 101.6869 }
+    : { latitude: location.latitude, longitude: location.longitude };
+
+  const end = { latitude: route.params.destiLat, longitude: route.params.destiLng };
 
   return (
     <View style={{ flex: 1, flexDirection: 'column' }}>
@@ -139,11 +211,7 @@ export default function Navigate({ route }: NavigateProps) {
         }}
       >
         <Text style={{ fontSize: 15 }}>Navigating Towards</Text>
-        <Text
-          style={{ fontWeight: 'bold', fontSize: 25 }}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text style={{ fontWeight: 'bold', fontSize: 25 }} numberOfLines={1} ellipsizeMode="tail">
           {route.params.name}
         </Text>
       </View>
@@ -159,15 +227,10 @@ export default function Navigate({ route }: NavigateProps) {
         }}
         showsUserLocation={true}
       >
-        {/* <Marker coordinate={start} title="You are here" description="Kuala Lumpur" /> */}
         <Marker coordinate={end} title={route.params.name} />
 
         {mapRoute.length > 0 && (
-          <Polyline
-            coordinates={mapRoute}
-            strokeColor="rgba(77,168,87,1)"
-            strokeWidth={5}
-          />
+          <Polyline coordinates={mapRoute} strokeColor="rgba(77,168,87,1)" strokeWidth={5} />
         )}
       </MapView>
 
