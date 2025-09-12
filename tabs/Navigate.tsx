@@ -7,9 +7,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import polyline from '@mapbox/polyline';
 import { GOOGLE_API_KEY } from '../Constants'
 import GetLocation from 'react-native-get-location';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import { useNavigation } from '@react-navigation/native';
 
 type NavigateProps = {
-  route : {
+  route: {
     params: {
       name: string,
       destiLat: number,
@@ -18,13 +21,19 @@ type NavigateProps = {
   };
 };
 
-export default function Navigate({route}: NavigateProps) {
+
+export default function Navigate({ route }: NavigateProps) {
+
+  type NavigateNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Navigate'>;
+  const navigation = useNavigation<NavigateNavigationProp>();
+
+
   const { height } = Dimensions.get('window');
   const insets = useSafeAreaInsets();
 
   // alert("destiLat : " + route.params.destiLat);
   // alert("destiLng : " + route.params.destiLng);
-  
+
 
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const requestLocationPermission = async (): Promise<boolean> => {
@@ -78,7 +87,7 @@ export default function Navigate({route}: NavigateProps) {
   }, []);
 
 
-  const start = location == null ? { latitude: 3.139, longitude: 101.6869 } : {latitude: location.latitude, longitude: location.longitude};
+  const start = location == null ? { latitude: 3.139, longitude: 101.6869 } : { latitude: location.latitude, longitude: location.longitude };
 
   const end = { latitude: route.params.destiLat, longitude: route.params.destiLng };  // destination
 
@@ -200,6 +209,7 @@ export default function Navigate({route}: NavigateProps) {
           </Pressable>
 
           <Pressable
+            onPress={() => navigation.navigate("FindWC")}
             android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
             style={({ pressed }) => [
               {
