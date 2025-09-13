@@ -13,15 +13,18 @@ import ImagePicker from 'react-native-image-crop-picker';
 export default function AddWC() {
 
     //name, location detail, lat, lng, features
-
-    const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    const mapRef = useRef<MapView>(null);
-
     const [name, setName] = React.useState("");
     const [nameError, setNameError] = React.useState(false);
 
-    const [location, setLocation] = React.useState("");
-    const [locationError, setLocationError] = React.useState(false);
+    const [locationDetails, setLocationDetails] = useState("");
+    const [locationDetailsError, setLocationDetailsError] = useState(false);
+
+    const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [selectedLocationError, setSelectedLocationError] = useState(false);
+    const mapRef = useRef<MapView>(null);
+
+
+    
 
     const handleMapPress = (event: MapPressEvent) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -44,12 +47,65 @@ export default function AddWC() {
             alert("Submitted Name : " + name);
         }
 
-        if (location.trim() === "") {
-            setLocationError(true);
+        if (locationDetails.trim() === "") {
+            setLocationDetailsError(true);
         } else {
-            setLocationError(false);
+            setLocationDetailsError(false);
             alert("Submitted Location : " + location);
         }
+
+        if(selectedLocation === null){
+            setSelectedLocationError(true);
+        }else{
+            setSelectedLocationError(false);
+            alert("Submitted Location : " + selectedLocation.latitude + "|" + selectedLocation.longitude);
+        }
+
+        const uploadImages = async () => {
+            if (images.length === 0) {
+                setImagesError("Please upload at least one image");
+                return;
+            }
+            setUploading(true);
+
+            try {
+                const res = await axios.post("http://192.168.43.233:8000/api/photos/get_signed_url/", {
+                    filenames: images.map(img => img.filename || img.path.split('/').pop()),
+                    content_types: images.map(img => img.mime || 'image/jpeg'),
+                });
+
+                const signedUrls = res.data;
+
+                for (let i = 0; i < images.length; i++) {
+                    const image = images[i];
+                    const { url, public_url } = signedUrls[i];
+
+                    // Fetch blob from local file
+                    const file = await fetch(image.path);
+                    const blob = await file.blob();
+
+                    await fetch(url, {
+                        method: 'PUT',
+                        body: blob,
+                        headers: {
+                            'Content-Type': image.mime || 'image/jpeg',
+                        },
+                    });
+
+                    console.log('Uploaded:', public_url);
+                    alert('Upload complete!');
+                    setImages([]);
+                }
+
+            } catch (err) {
+                console.log('Upload failed:', err);
+                alert('Upload failed');
+            } finally {
+                setUploading(false);
+            }
+        }
+
+        
 
     }
 
@@ -103,51 +159,7 @@ export default function AddWC() {
         }
     };
 
-    const uploadImages = async () => {
-        if (images.length === 0) {
-            setImagesError("Please upload at least one image");
-            return;
-        }
-        setUploading(true);
 
-        try {
-            const res = await axios.post("http://192.168.43.233:8000/api/photos/get_signed_url/", {
-                filenames: images.map(img => img.filename || img.path.split('/').pop()),
-                content_types: images.map(img => img.mime || 'image/jpeg'),
-            });
-
-            const signedUrls = res.data;
-
-            for (let i = 0; i < images.length; i++) {
-                const image = images[i];
-                const { url, public_url } = signedUrls[i];
-
-                // Fetch blob from local file
-                const file = await fetch(image.path);
-                const blob = await file.blob();
-
-                await fetch(url, {
-                    method: 'PUT',
-                    body: blob,
-                    headers: {
-                        'Content-Type': image.mime || 'image/jpeg',
-                    },
-                });
-
-                console.log('Uploaded:', public_url);
-                alert('Upload complete!');
-                setImages([]);
-            }
-
-        } catch (err) {
-            console.log('Upload failed:', err);
-            alert('Upload failed');
-        } finally {
-            setUploading(false);
-        }
-    }
-
-    //upload image end
 
 
     return (
@@ -162,7 +174,7 @@ export default function AddWC() {
                     <TextInput
                         label={
                             <Text>
-                                Name <Text style={{ color: "red" }}>*</Text>
+                                Washroom Location Name <Text style={{ color: "red" }}>*</Text>
                             </Text>
                         }
                         value={name}
@@ -179,9 +191,9 @@ export default function AddWC() {
                                 Location Details <Text style={{ color: "red" }}>*</Text>
                             </Text>
                         }
-                        value={location}
-                        onChangeText={setLocation}
-                        error={locationError}
+                        value={locationDetails}
+                        onChangeText={setLocationDetails}
+                        error={locationDetailsError}
                         mode="outlined"
                     />
 
@@ -224,7 +236,7 @@ export default function AddWC() {
                             </Text>
                         }
                         value={selectedLocation?.latitude.toFixed(6)}
-
+                        error={selectedLocationError}
                         mode="outlined"
                         disabled
                     />
@@ -238,6 +250,7 @@ export default function AddWC() {
                             </Text>
                         }
                         value={selectedLocation?.longitude.toFixed(6)}
+                        error={selectedLocationError}
 
                         mode="outlined"
                         disabled
@@ -264,7 +277,7 @@ export default function AddWC() {
                     <Text>Upload Images (Max 5) <Text style={{ color: "red" }}>*</Text> </Text>
                 </View>
 
-                <View style={{ marginTop: 10, marginBottom: 20, marginHorizontal: "5%", flexDirection: "row" }}>
+                <View style={{ marginTop: 10, marginHorizontal: "5%", flexDirection: "row" }}>
                     <Pressable android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
                         onPress={pickImages}
                         style={({ pressed }) => [{
@@ -278,7 +291,7 @@ export default function AddWC() {
                             marginRight: 8,
                             backgroundColor: "rgba(218, 254, 207, 1)",
                             opacity: pressed ? 0.7 : 1,
-                            flex: 1
+                            flex: 2
                         }]}>
 
                         <Text style={{ fontSize: 16 }}>Choose From Gallery</Text>
@@ -305,7 +318,7 @@ export default function AddWC() {
                     </Pressable>
                 </View>
 
-                <ScrollView horizontal style={{ marginVertical: 16, marginHorizontal: "5%" }}>
+                <ScrollView horizontal style={{ marginTop: 10, marginHorizontal: "5%" }}>
                     {images.map((img, idx) => (
                         <View key={idx}>
                             <Pressable
@@ -324,9 +337,15 @@ export default function AddWC() {
                         </View>
                     ))}
                 </ScrollView>
-
+                <View style={{ marginTop: 10, marginHorizontal: "5%" }}>
+                    {nameError && <Text style={{ color: "red" }}>* Washroom location name is required</Text>}
+                    {locationDetailsError && <Text style={{ color: "red" }}>* Location details required</Text>}
+                    {selectedLocationError && <Text style={{ color: "red" }}>* Please tap on the map to mark location (lat & lng)</Text>}
+                          
+                </View>
                 <View style={{ marginTop: 20, marginBottom: 20, marginHorizontal: "5%" }}>
                     <Pressable android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
+                        onPress={() => handleSubmit()}
                         style={({ pressed }) => [{
                             flexDirection: "row",
                             alignItems: "center",
@@ -343,11 +362,6 @@ export default function AddWC() {
                         <Text style={{ fontSize: 16 }}>Submit</Text>
                     </Pressable>
                 </View>
-
-
-
-
-
             </ScrollView>
         </View>
     );
