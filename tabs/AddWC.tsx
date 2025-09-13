@@ -1,5 +1,5 @@
-import { Image, View, ScrollView, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
-import React, { useRef, useState } from "react";
+import { Image, View, ScrollView, Text, Pressable, StyleSheet, Dimensions, FlatList } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CheckBox from "@react-native-community/checkbox";
 import MapView, { MapPressEvent, Marker } from 'react-native-maps';
@@ -8,6 +8,8 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 import { TextInput, Button } from "react-native-paper";
 import axios from 'axios';
 import ImagePicker from 'react-native-image-crop-picker';
+import debounce from 'lodash.debounce';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function AddWC() {
@@ -18,13 +20,70 @@ export default function AddWC() {
 
     const [locationDetails, setLocationDetails] = useState("");
     const [locationDetailsError, setLocationDetailsError] = useState(false);
+    const insets = useSafeAreaInsets();
+
+    type GoogleMapPlace = {
+        name: string;
+        lat: number;
+        lng: number;
+    }
+
+    const [query, setQuery] = useState("");
+    const [suggestions, setSuggestions] = useState<GoogleMapPlace[]>([]);
+
+    const fetchSuggestions = async (text: string) => {
+        try {
+            const res = await axios.get("http://192.168.43.233:8000/api/places", {
+                params: { query: text }
+            });
+            setSuggestions(res.data);
+        } catch (err) {
+            console.error("Error fetching suggestions:", err);
+        }
+    }
+
+    const debouncedFetch = useCallback(debounce(fetchSuggestions, 400), []);
+
+    useEffect(() => {
+        return () => {
+            debouncedFetch.cancel();
+        };
+    }, [debouncedFetch])
+
+    const handleChange = (text: string) => {
+        setQuery(text);
+
+        if (text.length > 1) {
+            debouncedFetch(text);
+        } else {
+            setSuggestions([]);
+        }
+    }
+
+    const handleSelect = (place: GoogleMapPlace) => {
+        setQuery(place.name);
+        // setSelectedMarker({ lat: place.lat, lng: place.lng });
+
+        mapRef.current?.animateToRegion(
+            {
+                latitude: place.lat,
+                longitude: place.lng,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            },
+            1000 // animation duration in ms
+        );
+
+        setSuggestions([]); //close suggestion dropdown
+
+    }
 
     const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [selectedLocationError, setSelectedLocationError] = useState(false);
     const mapRef = useRef<MapView>(null);
 
 
-    
+
 
     const handleMapPress = (event: MapPressEvent) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -33,7 +92,7 @@ export default function AddWC() {
 
     const [images, setImages] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
-    const [imagesError, setImagesError] = useState("");
+    const [imagesError, setImagesError] = useState(false);
 
 
 
@@ -54,60 +113,68 @@ export default function AddWC() {
             alert("Submitted Location : " + location);
         }
 
-        if(selectedLocation === null){
+        if (selectedLocation === null) {
             setSelectedLocationError(true);
-        }else{
+        } else {
             setSelectedLocationError(false);
             alert("Submitted Location : " + selectedLocation.latitude + "|" + selectedLocation.longitude);
         }
 
-        const uploadImages = async () => {
-            if (images.length === 0) {
-                setImagesError("Please upload at least one image");
-                return;
-            }
-            setUploading(true);
+        uploadImages();
 
-            try {
-                const res = await axios.post("http://192.168.43.233:8000/api/photos/get_signed_url/", {
-                    filenames: images.map(img => img.filename || img.path.split('/').pop()),
-                    content_types: images.map(img => img.mime || 'image/jpeg'),
-                });
 
-                const signedUrls = res.data;
 
-                for (let i = 0; i < images.length; i++) {
-                    const image = images[i];
-                    const { url, public_url } = signedUrls[i];
-
-                    // Fetch blob from local file
-                    const file = await fetch(image.path);
-                    const blob = await file.blob();
-
-                    await fetch(url, {
-                        method: 'PUT',
-                        body: blob,
-                        headers: {
-                            'Content-Type': image.mime || 'image/jpeg',
-                        },
-                    });
-
-                    console.log('Uploaded:', public_url);
-                    alert('Upload complete!');
-                    setImages([]);
-                }
-
-            } catch (err) {
-                console.log('Upload failed:', err);
-                alert('Upload failed');
-            } finally {
-                setUploading(false);
-            }
-        }
-
-        
 
     }
+
+    const uploadImages = async () => {
+        alert("here")
+        if (images.length === 0 || images.length > 5) {
+            setImagesError(true);
+            return;
+        } else {
+            setImagesError(false);
+        }
+        setUploading(true);
+
+        try {
+            const res = await axios.get("http://192.168.43.233:8000/api/photos/get_signed_url/", {
+                //filenames: images.map(img => img.filename || img.path.split('/').pop()),
+                //content_types: images.map(img => img.mime || 'image/jpeg'),
+            });
+
+            const signedUrls = res.data;
+
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+                const { url, public_url } = signedUrls[i];
+                console.log("purl : " + signedUrls[i])
+                // Fetch blob from local file
+                const file = await fetch(image.path);
+                const blob = await file.blob();
+
+                await fetch(url, {
+                    method: 'PUT',
+                    body: blob,
+                    headers: {
+                        'Content-Type': image.mime || 'image/jpeg',
+                    },
+                });
+
+                alert('Uploaded:' +  public_url);
+                console.log('Uploaded:' +  public_url);
+                alert('Upload complete!');
+                setImages([]);
+            }
+
+        } catch (err) {
+            console.log('Upload failed:', err);
+            alert('Upload failed');
+        } finally {
+            setUploading(false);
+        }
+    }
+
 
     const [checked, setChecked] = useState([false, false, false])
 
@@ -207,10 +274,37 @@ export default function AddWC() {
                 <View>
                     <TextInput
                         style={{ marginHorizontal: "5%" }}
-                        label="Type here to search"
-
+                        label="🔍 Move the map by searching here."
+                        value={query}
+                        onChangeText={handleChange}
                         mode="outlined"
                     />
+
+                    {suggestions.length > 0 && (
+                        <FlatList
+                            scrollEnabled={false}
+                            nestedScrollEnabled={true}
+                            style={{
+                                position: "absolute",
+                                top: insets.top + 56 + 30, // just below TextInput
+                                width: "90%",
+                                backgroundColor: "white",
+                                borderRadius: 10,
+                                zIndex: 200,
+                                maxHeight: 250,
+                                marginHorizontal: "5%",
+                            }}
+                            data={suggestions}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item }) => (
+                                <Pressable onPress={() => handleSelect(item)}>
+                                    <Text style={{ padding: 12, borderBottomWidth: 0.5, borderColor: "#ddd" }}>
+                                        {item.name}
+                                    </Text>
+                                </Pressable>
+                            )}
+                        />
+                    )}
                     <MapView
                         ref={mapRef}
                         style={{ marginHorizontal: "5%", height: height * 0.4 }}
@@ -341,7 +435,7 @@ export default function AddWC() {
                     {nameError && <Text style={{ color: "red" }}>* Washroom location name is required</Text>}
                     {locationDetailsError && <Text style={{ color: "red" }}>* Location details required</Text>}
                     {selectedLocationError && <Text style={{ color: "red" }}>* Please tap on the map to mark location (lat & lng)</Text>}
-                          
+                    {imagesError && <Text style={{ color: "red" }}>* A minimum of 1 image and a maximum of 5 images are allowed</Text>}
                 </View>
                 <View style={{ marginTop: 20, marginBottom: 20, marginHorizontal: "5%" }}>
                     <Pressable android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
