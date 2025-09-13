@@ -1,4 +1,4 @@
-import { View, ScrollView, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
+import { Image, View, ScrollView, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import React, { useRef, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CheckBox from "@react-native-community/checkbox";
@@ -6,6 +6,8 @@ import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { Appbar } from 'react-native-paper';
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { TextInput, Button } from "react-native-paper";
+import axios from 'axios';
+import ImagePicker from 'react-native-image-crop-picker';
 
 
 export default function AddWC() {
@@ -25,6 +27,12 @@ export default function AddWC() {
         const { latitude, longitude } = event.nativeEvent.coordinate;
         setSelectedLocation({ latitude, longitude });
     };
+
+    const [images, setImages] = useState<any[]>([]);
+    const [uploading, setUploading] = useState(false);
+    const [imagesError, setImagesError] = useState("");
+
+
 
     const { width, height } = Dimensions.get("window");
 
@@ -61,6 +69,85 @@ export default function AddWC() {
         { label: "Baby-friendly" },
 
     ]
+
+    //upload image start
+
+    // Pick multiple images
+    const pickImages = async () => {
+        try {
+            const picked = await ImagePicker.openPicker({
+                multiple: true,
+                mediaType: 'photo',
+            });
+            setImages(prev => prev.concat(picked));
+
+        } catch (err) {
+            console.log('Image pick cancelled or failed:', err);
+        }
+    };
+
+    // Capture image with camera
+    const pickFromCamera = async () => {
+        try {
+            const captured = await ImagePicker.openCamera({
+                width: 800,         // optional resize
+                height: 800,
+                cropping: false,    // set true if you want crop UI
+                mediaType: 'photo',
+            });
+
+            // `captured` is a single object, not an array like openPicker(multiple:true)
+            setImages(prev => [...prev, captured]);
+        } catch (err) {
+            console.log("Camera cancelled or failed:", err);
+        }
+    };
+
+    const uploadImages = async () => {
+        if (images.length === 0) {
+            setImagesError("Please upload at least one image");
+            return;
+        }
+        setUploading(true);
+
+        try {
+            const res = await axios.post("http://192.168.43.233:8000/api/photos/get_signed_url/", {
+                filenames: images.map(img => img.filename || img.path.split('/').pop()),
+                content_types: images.map(img => img.mime || 'image/jpeg'),
+            });
+
+            const signedUrls = res.data;
+
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+                const { url, public_url } = signedUrls[i];
+
+                // Fetch blob from local file
+                const file = await fetch(image.path);
+                const blob = await file.blob();
+
+                await fetch(url, {
+                    method: 'PUT',
+                    body: blob,
+                    headers: {
+                        'Content-Type': image.mime || 'image/jpeg',
+                    },
+                });
+
+                console.log('Uploaded:', public_url);
+                alert('Upload complete!');
+                setImages([]);
+            }
+
+        } catch (err) {
+            console.log('Upload failed:', err);
+            alert('Upload failed');
+        } finally {
+            setUploading(false);
+        }
+    }
+
+    //upload image end
 
 
     return (
@@ -173,6 +260,70 @@ export default function AddWC() {
                     ))}
                 </View>
 
+                <View style={{ marginTop: 20, marginHorizontal: "5%" }}>
+                    <Text>Upload Images (Max 5) <Text style={{ color: "red" }}>*</Text> </Text>
+                </View>
+
+                <View style={{ marginTop: 10, marginBottom: 20, marginHorizontal: "5%", flexDirection: "row" }}>
+                    <Pressable android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
+                        onPress={pickImages}
+                        style={({ pressed }) => [{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 15,
+                            elevation: 4,
+                            marginRight: 8,
+                            backgroundColor: "rgba(218, 254, 207, 1)",
+                            opacity: pressed ? 0.7 : 1,
+                            flex: 1
+                        }]}>
+
+                        <Text style={{ fontSize: 16 }}>Choose From Gallery</Text>
+                    </Pressable>
+
+                    <Pressable
+                        android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
+                        onPress={pickFromCamera}
+                        style={({ pressed }) => [{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 15,
+                            elevation: 4,
+                            marginRight: 8,
+                            backgroundColor: "rgba(218, 254, 207, 1)",
+                            opacity: pressed ? 0.7 : 1,
+                            flex: 1
+                        }]}
+                    >
+                        <Text style={{ fontSize: 16 }}>Take Photo</Text>
+                    </Pressable>
+                </View>
+
+                <ScrollView horizontal style={{ marginVertical: 16, marginHorizontal: "5%" }}>
+                    {images.map((img, idx) => (
+                        <View key={idx}>
+                            <Pressable
+                                onPress={() => {
+                                    setImages(prev => prev.filter((_, i) => i !== idx));
+                                }}
+                                style={{ position: "absolute", zIndex: 2, right: "10%" }}
+                            >
+                                <View ><Text style={{ fontSize: 20 }}>❌</Text></View>
+                            </Pressable>
+                            <Image
+                                key={idx}
+                                source={{ uri: img.path }}
+                                style={{ width: 100, height: 100, marginRight: 8 }}
+                            />
+                        </View>
+                    ))}
+                </ScrollView>
 
                 <View style={{ marginTop: 20, marginBottom: 20, marginHorizontal: "5%" }}>
                     <Pressable android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
@@ -192,6 +343,8 @@ export default function AddWC() {
                         <Text style={{ fontSize: 16 }}>Submit</Text>
                     </Pressable>
                 </View>
+
+
 
 
 
