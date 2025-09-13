@@ -1,14 +1,62 @@
-import { View, Text, Pressable } from 'react-native';
-import React, { useState } from "react";
+import { View, Text, Pressable, Platform, ToastAndroid } from 'react-native';
+import React, { useCallback, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CheckBox from "@react-native-community/checkbox";
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
 
-export default function Survey() {
-    const [rating, setRating] = React.useState(-1);
+type SurveyProps = {
+    route: {
+        params: {
+            washroomId: number
+        }
+    }
+}
+
+export default function Survey({ route }: SurveyProps) {
+    type Washroom = {
+        name: string,
+    }
+
+    const [washroom, setWashroom] = useState<Washroom | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setLoading(true);
+            axios.get(`http://192.168.43.233:8000/api/washrooms/${route.params.washroomId}/`)
+                .then((response) => {
+                    setWashroom(response.data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching data", error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        }, [route.params.washroomId])
+    );
+
+    // //onload function
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const setStatus = async() => {
+    //             alert("onload" + route.params.washroomId);
+    //         }
+    //         setStatus();
+
+    //     }, [route.params.washroomId])
+    // );
+
+
+
+    const [rating, setRating] = React.useState(0);
     type Star = {
         rating: number
     }
-    let stars = [{ rating: 0 }, { rating: 1 }, { rating: 2 }, { rating: 3 }, { rating: 4 },]
+    let stars = [{ rating: 1 }, { rating: 2 }, { rating: 3 }, { rating: 4 }, { rating: 5 },]
 
     const [checked, setChecked] = useState([false, false, false, false, false, false, false])
 
@@ -31,22 +79,83 @@ export default function Survey() {
 
     ]
 
+    const [ratingError, setRatingError] = useState<string>("")
+
+    type SurveyNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Survey'>;
+
+    const navigation = useNavigation<SurveyNavigationProp>();
+
+
+    const handleSubmit = async () => {
+        if (!washroom) return;
+        if (rating == 0) {
+            setRatingError("Please set a rating.")
+            return;
+        }
+
+        const surveyData = {
+            starRating: rating,
+            isLocked: checked[0],
+            isKeyNeeded: checked[1],
+            isQueue: checked[2],
+            isInsecure: checked[3],
+            isElderHarsh: checked[4],
+            isPregnantHarsh: checked[5],
+            isBabyHarsh: checked[6],
+            washroom_id: route.params.washroomId,
+
+        };
+
+        try {
+            const response = await axios.post(
+                "http://192.168.43.233:8000/api/reviews/",
+                surveyData
+            );
+
+            showToast("Form submitted successfully!");
+
+            setRating(0);
+            setChecked([false, false, false, false, false, false, false]);
+            setRatingError("");
+            
+            navigation.navigate("Home")
+
+        } catch (error) {
+            showToast("Form submission failed");
+
+        }
+
+    }
+
+    const showToast = (message: string) => {
+        if (Platform.OS === "android") {
+            ToastAndroid.show(message, ToastAndroid.SHORT);
+        } else {
+            // fallback for iOS
+            console.log(message);
+        }
+    };
+
     return (
-        <View style={{ flexDirection: "column", flex: 1, marginTop: 56}}>
+        <View style={{ flexDirection: "column", flex: 1, marginTop: 56 }}>
             <View style={{ flexDirection: "row", justifyContent: "center", flex: 1 }}>
-                <Text style={{fontWeight: "bold", fontSize: 55}}>✅</Text>
+                <Text style={{ fontWeight: "bold", fontSize: 55 }}>✅</Text>
             </View>
-            <View style={{ flexDirection: "row", justifyContent: "center", flex: 1 }}>
-                <Text style={{fontWeight: "bold", fontSize: 25}}>You've Arrived</Text>
+            <View style={{ flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1 }}>
+                <Text style={{ fontWeight: "bold", fontSize: 25 }}>You've Visited</Text>
+                <Text style={{ fontWeight: "bold", fontSize: 25 }}>{washroom?.name}</Text>
+
             </View>
+
+
             <View style={{ flexDirection: "row", justifyContent: "center", flex: 1 }}>
 
                 {
                     stars.map((star, i) => (
-                        <Pressable key={i} onPress={() => setRating(i)}>
+                        <Pressable key={i} onPress={() => setRating(star.rating)}>
                             <Ionicons name="star" style={{
                                 fontSize: 55,
-                                color: (i <= rating) ? "orange" : "black"
+                                color: (star.rating <= rating) ? "orange" : "black"
                             }}></Ionicons>
                         </Pressable>
                     ))
@@ -54,7 +163,7 @@ export default function Survey() {
                 }
             </View>
             <View style={{ flexDirection: "row", justifyContent: "center", flex: 1 }}>
-                <Text style={{fontWeight: "bold", fontSize: 25}}>Please tell us more...</Text>
+                <Text style={{ fontWeight: "bold", fontSize: 25 }}>Please tell us more...</Text>
             </View>
 
             <View style={{ flexDirection: "row", justifyContent: "center", flex: 4 }}>
@@ -83,7 +192,9 @@ export default function Survey() {
                         marginVertical: 10,
                         backgroundColor: "rgba(146, 184, 82, 1)",
                         opacity: pressed ? 0.7 : 1,
-                    }]}>
+                    }]}
+                    onPress={handleSubmit}
+                >
 
                     <Text style={{ fontSize: 32 }}>Done</Text>
                 </Pressable>

@@ -442,7 +442,7 @@ export default function FindWC() {
               backgroundColor: "rgba(151, 233, 126, 1)",
               opacity: pressed ? 0.7 : 1,
             }]}
-          onPress={() => navigation.navigate("Navigate", {name, destiLat, destiLng})}
+          onPress={() => navigation.navigate("Navigate", {washroomId, name, destiLat, destiLng})}
           >
 
             <Ionicons name="navigate" size={16} style={{ marginRight: 6 }} />

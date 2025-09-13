@@ -1,5 +1,7 @@
 export type RootStackParamList = {
   FindWC: undefined;
   WcDetails: { washroomId: number };
-  Navigate: {name: string, destiLat: number, destiLng: number}
+  Navigate: {washroomId: number, name: string, destiLat: number, destiLng: number}
+  Survey: {washroomId: number};
+  Home: undefined
 };

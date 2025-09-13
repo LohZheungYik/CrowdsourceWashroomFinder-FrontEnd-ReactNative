@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Dimensions, Pressable, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, Dimensions, Pressable, Platform, PermissionsAndroid, Alert } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 type NavigateProps = {
   route: {
     params: {
+      washroomId: number, 
       name: string,
       destiLat: number,
       destiLng: number
@@ -31,9 +32,10 @@ export default function Navigate({ route }: NavigateProps) {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mapRoute, setMapRoute] = useState<{ latitude: number; longitude: number }[]>([]);
 
-  // ref to avoid overlapping location requests
+  // refs
   const fetchingRef = useRef<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasArrivedRef = useRef<boolean>(false);
 
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
@@ -57,6 +59,24 @@ export default function Navigate({ route }: NavigateProps) {
     return true;
   };
 
+  // --- Haversine distance (in meters) ---
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lon2 - lon1);
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // meters
+  };
+
   // --- Trim polyline based on closest point to user ---
   const shortenRoute = (userLat: number, userLng: number) => {
     setMapRoute((prevMapRoute) => {
@@ -67,7 +87,6 @@ export default function Navigate({ route }: NavigateProps) {
 
       for (let idx = 0; idx < prevMapRoute.length; idx++) {
         const point = prevMapRoute[idx];
-        // simple Euclidean on lat/lng (good enough for trimming; for meters use haversine)
         const d = Math.sqrt(
           Math.pow(point.latitude - userLat, 2) + Math.pow(point.longitude - userLng, 2)
         );
@@ -77,9 +96,7 @@ export default function Navigate({ route }: NavigateProps) {
         }
       }
 
-      // If closestIndex is 0 keep full route; if at end keep last point (destination)
       if (closestIndex >= prevMapRoute.length - 1) {
-        // user is at/near the last point
         return prevMapRoute.slice(prevMapRoute.length - 1);
       }
 
@@ -100,7 +117,6 @@ export default function Navigate({ route }: NavigateProps) {
 
       if (!mounted) return;
 
-      // mark fetching so polling doesn't start overlapping
       fetchingRef.current = true;
       try {
         const loc = await GetLocation.getCurrentPosition({
@@ -112,7 +128,6 @@ export default function Navigate({ route }: NavigateProps) {
 
         setLocation({ latitude: loc.latitude, longitude: loc.longitude });
 
-        // Fetch route from Google Directions API (once)
         const res = await fetch(
           `https://maps.googleapis.com/maps/api/directions/json?origin=${loc.latitude},${loc.longitude}&destination=${route.params.destiLat},${route.params.destiLng}&key=${GOOGLE_API_KEY}`
         );
@@ -138,17 +153,14 @@ export default function Navigate({ route }: NavigateProps) {
     return () => {
       mounted = false;
     };
-    // run only once on mount
   }, [route.params]);
 
   // --- Poll location every 5 seconds (no overlapping calls) ---
   useEffect(() => {
-    // don't start polling until we've obtained initial route (optional)
     const startPolling = () => {
-      if (intervalRef.current) return; // already started
+      if (intervalRef.current) return;
 
       intervalRef.current = setInterval(async () => {
-        // skip if another fetch is in progress
         if (fetchingRef.current) return;
 
         fetchingRef.current = true;
@@ -161,10 +173,20 @@ export default function Navigate({ route }: NavigateProps) {
           const { latitude, longitude } = loc;
           setLocation({ latitude, longitude });
 
-          // Trim route instead of fetching again
           shortenRoute(latitude, longitude);
+
+          // --- Check arrival ---
+          const distance = getDistance(latitude, longitude, end.latitude, end.longitude);
+          if (!hasArrivedRef.current && distance < 50) { // within 50m
+            hasArrivedRef.current = true;
+            Alert.alert("Arrived!", `You have reached ${route.params.name}`);
+            // Optional: stop polling after arrival
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+          }
         } catch (err) {
-          // More informative logging for debugging
           console.warn('Polling location error:', err);
         } finally {
           fetchingRef.current = false;
@@ -181,7 +203,7 @@ export default function Navigate({ route }: NavigateProps) {
       }
       fetchingRef.current = false;
     };
-  }, []); // empty deps — single interval controlled by refs
+  }, []); 
 
   const start = location == null
     ? { latitude: 3.139, longitude: 101.6869 }
@@ -251,6 +273,7 @@ export default function Navigate({ route }: NavigateProps) {
       >
         <View style={{ flexDirection: 'row', marginLeft: '2%', marginTop: 20 }}>
           <Pressable
+            onPress={()=> navigation.navigate("Survey", {washroomId: route.params.washroomId})}
             android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
             style={({ pressed }) => [
               {

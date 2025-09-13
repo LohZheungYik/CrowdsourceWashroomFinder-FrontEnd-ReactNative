@@ -4,6 +4,8 @@ import { RootStackParamList } from './types';
 import FindWC from '../tabs/FindWC';
 import WcDetails from '../tabs/WcDetails';
 import Navigate from '../tabs/Navigate';
+import Survey from '../tabs/Survey';
+import Home from '../tabs/Home';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -11,10 +13,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   return (
     <Stack.Navigator>
+      <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="FindWC" component={FindWC} />
       <Stack.Screen name="WcDetails" component={WcDetails} />
       <Stack.Screen name="Navigate" component={Navigate} />
-    
+      <Stack.Screen name="Survey" component={Survey} />
     </Stack.Navigator>
   );
 }
