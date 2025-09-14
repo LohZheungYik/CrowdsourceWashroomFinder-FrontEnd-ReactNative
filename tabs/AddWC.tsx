@@ -1,4 +1,4 @@
-import { Image, View, ScrollView, Text, Pressable, StyleSheet, Dimensions, FlatList } from 'react-native';
+import { Image, View, ScrollView, Text, Pressable, StyleSheet, Dimensions, FlatList, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CheckBox from "@react-native-community/checkbox";
@@ -10,8 +10,7 @@ import axios from 'axios';
 import ImagePicker from 'react-native-image-crop-picker';
 import debounce from 'lodash.debounce';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 export default function AddWC() {
 
     //name, location detail, lat, lng, features
@@ -94,94 +93,12 @@ export default function AddWC() {
     const [uploading, setUploading] = useState(false);
     const [imagesError, setImagesError] = useState(false);
 
-
-
-    const { width, height } = Dimensions.get("window");
-
-    const handleSubmit = () => {
-        if (name.trim() === "") {
-            setNameError(true);
-        } else {
-            setNameError(false);
-            alert("Submitted Name : " + name);
-        }
-
-        if (locationDetails.trim() === "") {
-            setLocationDetailsError(true);
-        } else {
-            setLocationDetailsError(false);
-            alert("Submitted Location : " + location);
-        }
-
-        if (selectedLocation === null) {
-            setSelectedLocationError(true);
-        } else {
-            setSelectedLocationError(false);
-            alert("Submitted Location : " + selectedLocation.latitude + "|" + selectedLocation.longitude);
-        }
-
-        uploadImages();
-
-
-
-
-    }
-
-    const uploadImages = async () => {
-        alert("here")
-        if (images.length === 0 || images.length > 5) {
-            setImagesError(true);
-            return;
-        } else {
-            setImagesError(false);
-        }
-        setUploading(true);
-
-        try {
-            const res = await axios.get("http://192.168.43.233:8000/api/photos/get_signed_url/", {
-                //filenames: images.map(img => img.filename || img.path.split('/').pop()),
-                //content_types: images.map(img => img.mime || 'image/jpeg'),
-            });
-
-            const signedUrls = res.data;
-
-            for (let i = 0; i < images.length; i++) {
-                const image = images[i];
-                const { url, public_url } = signedUrls[i];
-                console.log("purl : " + signedUrls[i])
-                // Fetch blob from local file
-                const file = await fetch(image.path);
-                const blob = await file.blob();
-
-                await fetch(url, {
-                    method: 'PUT',
-                    body: blob,
-                    headers: {
-                        'Content-Type': image.mime || 'image/jpeg',
-                    },
-                });
-
-                alert('Uploaded:' +  public_url);
-                console.log('Uploaded:' +  public_url);
-                alert('Upload complete!');
-                setImages([]);
-            }
-
-        } catch (err) {
-            console.log('Upload failed:', err);
-            alert('Upload failed');
-        } finally {
-            setUploading(false);
-        }
-    }
-
-
-    const [checked, setChecked] = useState([false, false, false])
+    const [wcFeatures, setWcFeatures] = useState([false, false, false])
 
     const toggleCheckbox = (index: number) => {
-        const updated = [...checked];
+        const updated = [...wcFeatures];
         updated[index] = !updated[index];
-        setChecked(updated);
+        setWcFeatures(updated);
     }
 
     type CheckBoxItem = { label: string }
@@ -192,6 +109,129 @@ export default function AddWC() {
         { label: "Baby-friendly" },
 
     ]
+
+    const { width, height } = Dimensions.get("window");
+
+    const handleSubmit = async () => {
+        setUploading(true);
+
+        if (name.trim() === "") {
+            setNameError(true);
+            return;
+        } else {
+            setNameError(false);
+        }
+
+        if (locationDetails.trim() === "") {
+            setLocationDetailsError(true);
+            return;
+        } else {
+            setLocationDetailsError(false);
+        }
+
+        if (selectedLocation === null) {
+            setSelectedLocationError(true);
+            return;
+        } else {
+            setSelectedLocationError(false);
+        }
+
+
+
+        let imageUrls = await uploadImages();
+        //why imageUrls undefined?
+        if (!imageUrls || imageUrls.length === 0) {
+            
+            setImagesError(true);
+            return;
+        }
+        let wcData = {
+            name: name,
+            description: locationDetails,
+            lat: selectedLocation.latitude,
+            lng: selectedLocation.longitude,
+            features: {
+                isDisableFriendly: wcFeatures[0],
+                isPregnantFriendly: wcFeatures[1],
+                isBabyFriendly: wcFeatures[2]
+            },
+            photos: imageUrls
+        }
+        
+        //how to write wcData post code axios
+        try {
+            const res = await axios.post("http://192.168.43.233:8000/api/washrooms/", wcData, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            console.log("WC posted:", res.data);
+        } catch (err) {
+            console.error("Error posting washroom:", err);
+            alert("Failed to submit washroom.");
+        } finally {
+            setUploading(false);
+        }
+
+    }
+
+    const uploadImages = async () => {
+        if (images.length === 0 || images.length > 5) {
+            setImagesError(true);
+            return;
+        } else {
+            setImagesError(false);
+        }
+
+
+        let imageUrls = []
+
+        try {
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+
+                //resize
+                const resizedImage = await ImageResizer.createResizedImage(
+                    image.path,   // original image path
+                    300,          // width
+                    200,          // height
+                    'JPEG',       // format
+                    80            // quality (0-100)
+                );
+
+                // 1. Get a signed URL for this image
+                const res = await axios.get("http://192.168.43.233:8000/api/photos/get_signed_url/");
+                const { upload_url, public_url } = res.data;
+
+                // 2. Convert file to blob
+                const file = await fetch(resizedImage.uri);
+                const blob = await file.blob();
+
+                // 3. Upload to Google Cloud Storage
+                await fetch(upload_url, {
+                    method: 'PUT',
+                    body: blob,
+                    headers: { 'Content-Type': 'image/jpeg' },
+                });
+
+                console.log("Uploaded:", public_url);
+                imageUrls.push({ photoUrl: public_url })
+
+            }
+
+            return imageUrls;
+
+        } catch (err) {
+            console.log('Upload failed:', err);
+            alert('Upload failed');
+        } finally {
+            setUploading(false);
+            
+        }
+    }
+
+
+
 
     //upload image start
 
@@ -359,7 +399,7 @@ export default function AddWC() {
                 )} */}
 
                 <View style={{ marginTop: 20, marginHorizontal: "5%" }}>
-                    {checked.map((value, index) => (
+                    {wcFeatures.map((value, index) => (
                         <View key={index} style={{ flexDirection: "row", alignItems: "center" }}>
                             <CheckBox value={value} onValueChange={() => toggleCheckbox(index)} />
                             <Text>{checkBoxItems[index].label}</Text>
@@ -453,7 +493,12 @@ export default function AddWC() {
                             opacity: pressed ? 0.7 : 1,
                         }]}>
 
-                        <Text style={{ fontSize: 16 }}>Submit</Text>
+                        <Text style={{ fontSize: 16 }}> {uploading ? (
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                <ActivityIndicator size="small" color="black" />
+                                <Text style={{ fontSize: 16, marginLeft: 8 }}>Submiting... Please Wait...</Text>
+                            </View>
+                        ) : "Submit"} </Text>
                     </Pressable>
                 </View>
             </ScrollView>
