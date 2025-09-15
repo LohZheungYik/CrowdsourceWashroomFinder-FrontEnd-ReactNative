@@ -1,61 +1,78 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 
 
 export default function Home() {
-
-  // const [location, setLocation] = React.useState<Location.LocationObject | null>(null);
-  // const [loading, setLoading] = React.useState(true);
-
-  //loading circle
-  // React.useEffect(() => {
-  //   setTimeout(() => {
-  //     setLoading(false);
-  //   }, 2)
-  // }, []);
-
-  //get current location
-  // React.useEffect(() => {
-  //   (async () => {
-  //     let { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status !== 'granted') {
-  //       return;
-  //     }
-
-  //     let loc = await Location.getCurrentPositionAsync({});
-  //     setLocation(loc);
-  //   })();
-  // }, []);
-
-  // let text = "waiting";
-  // if (location) {
-  //   text = `Latitude: ${location.coords.latitude}, Longitude: ${location.coords.longitude}`;
-  // }
-
-  // if (loading) {
-  //   return (
-  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-  //       <ActivityIndicator size="large" color="green" />
-  //       <Text>Loading...</Text>
-  //     </View>
-  //   );
-  // }
-
-  type Item = {
-    id: string;
-    title: string;
-    subtitle: string;
+  type Feature = {
+    isDisableFriendly: boolean;
+    isPregnantFriendly: boolean;
+    isBabyFriendly: boolean;
   }
 
-  const data: Item[] = [
-    { id: "1", title: "Item One", subtitle: "This is the first item" },
-    { id: "2", title: "Item Two", subtitle: "This is the second item" },
-    { id: "3", title: "Item Three", subtitle: "This is the third item" },
-  ];
+  type Photo = {
+    photoUrl: string
+  }
+
+  type Washroom = {
+    id: number,
+    name: string,
+    description: string,
+    features: Feature,
+    avg_rating: number,
+    photos: Photo[]
+  }
+
+  const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [washrooms, setWashrooms] = useState<Washroom[]>([]);
+
+  useEffect(() => {
+    axios.get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
+      params: {
+        lat: 3.1355614577,
+        lng: 101.6928337142,
+
+      }
+    })
+      .then((response) => {
+        setWashrooms(response.data)
+      }).catch((error) => {
+        console.log("Error fetching data")
+      }).finally(() => {
+        setLoading(false);
+      })
+  })
+
+  // const washrooms: Washroom[] = [
+  //   {id: 1, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 2, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 4, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 5, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 6, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 7, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 8, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 9, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 10, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 11, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 12, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  //   {id: 13, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
+  
+  // ]
+
+
+
+  // const data: Item[] = [
+  //   { id: "1", title: "Item One", subtitle: "This is the first item" },
+  //   { id: "2", title: "Item Two", subtitle: "This is the second item" },
+  //   { id: "3", title: "Item Three", subtitle: "This is the third item" },
+  // ];
+
+
 
   type FeatureList = {
     name: string,
@@ -70,13 +87,20 @@ export default function Home() {
     { name: "Share Washroom", image: require("../assets/images/wc.png"), color: "rgba(255, 231, 233, 1)" },
   ];
 
-  const renderItem: ListRenderItem<Item> = ({ item }) => (
+  const renderWashrooms: ListRenderItem<Washroom> = ({ item }) => (
     <View style={styles.itemContainer}>
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
+        <Text style={styles.title}>{item.name}</Text>
+        <View style={[styles.subtitle, { flexDirection: "row", marginLeft: "2%" }]}>
+          {[...Array(5)].map((_, i) => (
+            <Ionicons key={i} name="star" size={16} style={{
+              marginRight: 6,
+              color: i < item.avg_rating ? "orange" : "gray"
+            }} />
+          ))}
+        </View>
       </View>
-      <TouchableOpacity onPress={() => alert(`Clicked ${item.title}`)}>
+      <TouchableOpacity onPress={() => alert(`Clicked ${item.name}`)}>
         <Ionicons name="eye" size={24} color="black" />
       </TouchableOpacity>
     </View>
@@ -144,9 +168,9 @@ export default function Home() {
         }}
       >
         <FlatList
-          data={data}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          data={washrooms}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderWashrooms}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       </View>

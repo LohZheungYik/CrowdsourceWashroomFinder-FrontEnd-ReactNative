@@ -12,59 +12,59 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import GetLocation from 'react-native-get-location';
 
+import {useLocation} from '../utils/locationService'
+
 export default function FindWC() {
 
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  // const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const requestLocationPermission = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Location Permission',
-            message: 'This app needs access to your location.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
+  // const requestLocationPermission = async (): Promise<boolean> => {
+  //   if (Platform.OS === 'android') {
+  //     try {
+  //       const granted = await PermissionsAndroid.request(
+  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //         {
+  //           title: 'Location Permission',
+  //           message: 'This app needs access to your location.',
+  //           buttonNeutral: 'Ask Me Later',
+  //           buttonNegative: 'Cancel',
+  //           buttonPositive: 'OK',
+  //         }
+  //       );
+  //       return granted === PermissionsAndroid.RESULTS.GRANTED;
+  //     } catch (err) {
+  //       console.warn(err);
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // };
 
-  const fetchLocation = async () => {
-    // Ask permission
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
-      alert('Permission Denied');
-      return;
-    }
+  // const fetchLocation = async () => {
+  //   // Ask permission
+  //   const hasPermission = await requestLocationPermission();
+  //   if (!hasPermission) {
+  //     alert('Permission Denied');
+  //     return;
+  //   }
 
-    // get location
-    GetLocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 60000,
-    })
-      .then((loc) => {
-        console.log(loc);
-        setLocation({ latitude: loc.latitude, longitude: loc.longitude });
-      })
-      .catch((error) => {
-        const { code, message } = error;
-        console.warn(code, message);
-        alert(message);
-      });
-  };
+  //   // get location
+  //   GetLocation.getCurrentPosition({
+  //     enableHighAccuracy: true,
+  //     timeout: 60000,
+  //   })
+  //     .then((loc) => {
+  //       console.log(loc);
+  //       setLocation({ latitude: loc.latitude, longitude: loc.longitude });
+  //     })
+  //     .catch((error) => {
+  //       const { code, message } = error;
+  //       console.warn(code, message);
+  //       alert(message);
+  //     });
+  // };
 
-  useEffect(() => {
-    fetchLocation();
-  }, []);
+  //const {location, fetchLocation} = useLocation();
 
 
   type MapFilter = { label: string };
@@ -152,6 +152,8 @@ export default function FindWC() {
 
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<GoogleMapPlace[]>([]);
+  const { location, fetchLocation } = useLocation();
+
 
   const fetchSuggestions = async (text: string) => {
     try {
@@ -224,6 +226,11 @@ export default function FindWC() {
       );
     }
   }, [location]);
+
+  //fetch current location after map load
+  useEffect(() => {
+    fetchLocation(); 
+  }, [])
 
   type FindWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
 

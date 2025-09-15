@@ -23,6 +23,10 @@ export default function WcDetails({ route }: WcDetailsProps) {
         isBabyFriendly: boolean;
     }
 
+    type Photo = {
+        photoUrl: string
+    }
+
     type Washroom = {
         name: string,
         description: string,
@@ -35,6 +39,7 @@ export default function WcDetails({ route }: WcDetailsProps) {
         count_isElderHarsh: number,
         count_isPregnantHarsh: number,
         count_isBabyHarsh: number
+        photos: Photo[]
     }
 
     const [washroom, setWashroom] = useState<Washroom | null>(null);
@@ -65,13 +70,13 @@ export default function WcDetails({ route }: WcDetailsProps) {
 
     //alert(route.params.washroomId);
 
-    let imageUrls: ImageUrl[] = [
-        { url: { uri: "https://picsum.photos/id/1/300/200" } },
-        { url: { uri: "https://picsum.photos/id/2/300/200" } },
-        { url: { uri: "https://picsum.photos/id/3/300/200" } },
-        { url: { uri: "https://picsum.photos/id/4/300/200" } },
-        { url: { uri: "https://picsum.photos/id/5/300/200" } }
-    ]
+    // let imageUrls: ImageUrl[] = [
+    //     { url: { uri: "https://picsum.photos/id/1/300/200" } },
+    //     { url: { uri: "https://picsum.photos/id/2/300/200" } },
+    //     { url: { uri: "https://picsum.photos/id/3/300/200" } },
+    //     { url: { uri: "https://picsum.photos/id/4/300/200" } },
+    //     { url: { uri: "https://picsum.photos/id/5/300/200" } }
+    // ]
 
     type WCDetailsNavigationProp = NativeStackNavigationProp<RootStackParamList, 'WcDetails'>;
 
@@ -131,10 +136,10 @@ export default function WcDetails({ route }: WcDetailsProps) {
 
             <ScrollView horizontal={true}>
                 {
-                    imageUrls.map((imgUrl, i) => (
+                    washroom.photos.map((imgUrl, i) => (
                         <View key={i}>
                             <Image
-                                source={imgUrl.url}
+                                source={{uri: imgUrl.photoUrl}}
                                 style={{ width: 300, height: 200, resizeMode: "contain", marginHorizontal: 2 }}
                             />
                         </View>
