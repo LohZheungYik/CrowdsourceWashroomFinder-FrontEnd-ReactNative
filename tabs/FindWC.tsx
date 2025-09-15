@@ -10,62 +10,10 @@ import debounce from "lodash.debounce";
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import GetLocation from 'react-native-get-location';
 
 import {useLocation} from '../utils/locationService'
 
 export default function FindWC() {
-
-  // const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-
-  // const requestLocationPermission = async (): Promise<boolean> => {
-  //   if (Platform.OS === 'android') {
-  //     try {
-  //       const granted = await PermissionsAndroid.request(
-  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //         {
-  //           title: 'Location Permission',
-  //           message: 'This app needs access to your location.',
-  //           buttonNeutral: 'Ask Me Later',
-  //           buttonNegative: 'Cancel',
-  //           buttonPositive: 'OK',
-  //         }
-  //       );
-  //       return granted === PermissionsAndroid.RESULTS.GRANTED;
-  //     } catch (err) {
-  //       console.warn(err);
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // };
-
-  // const fetchLocation = async () => {
-  //   // Ask permission
-  //   const hasPermission = await requestLocationPermission();
-  //   if (!hasPermission) {
-  //     alert('Permission Denied');
-  //     return;
-  //   }
-
-  //   // get location
-  //   GetLocation.getCurrentPosition({
-  //     enableHighAccuracy: true,
-  //     timeout: 60000,
-  //   })
-  //     .then((loc) => {
-  //       console.log(loc);
-  //       setLocation({ latitude: loc.latitude, longitude: loc.longitude });
-  //     })
-  //     .catch((error) => {
-  //       const { code, message } = error;
-  //       console.warn(code, message);
-  //       alert(message);
-  //     });
-  // };
-
-  //const {location, fetchLocation} = useLocation();
-
 
   type MapFilter = { label: string };
 
@@ -93,10 +41,6 @@ export default function FindWC() {
     isBabyFriendly: boolean;
   }
 
-  // type Review = {
-  //   starRating: number;
-  // }
-
   type Washroom = {
     id: string;
     name: string;
@@ -107,10 +51,6 @@ export default function FindWC() {
     features: Feature;
     avg_rating: number;
   }
-
-
-
-  //
 
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
   const [loading, setLoading] = useState(true);

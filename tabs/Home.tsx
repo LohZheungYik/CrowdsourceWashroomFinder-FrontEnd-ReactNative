@@ -5,9 +5,17 @@ import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
-
+// import { useLocation } from '../utils/locationService'
 
 export default function Home() {
+
+  // //get current location
+  // const { location, fetchLocation } = useLocation();
+  // useEffect(() => {
+  //   fetchLocation();
+  // }, [])
+
+
   type Feature = {
     isDisableFriendly: boolean;
     isPregnantFriendly: boolean;
@@ -28,14 +36,13 @@ export default function Home() {
   }
 
   const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
 
   useEffect(() => {
     axios.get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
       params: {
-        lat: 3.1355614577,
-        lng: 101.6928337142,
+        lat: 3.1355614577, //location?.latitude,
+        lng: 101.6928337142 //location?.longitude,
 
       }
     })
@@ -61,7 +68,7 @@ export default function Home() {
   //   {id: 11, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
   //   {id: 12, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
   //   {id: 13, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
-  
+
   // ]
 
 
