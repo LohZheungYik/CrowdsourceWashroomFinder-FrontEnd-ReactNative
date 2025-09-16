@@ -1,10 +1,11 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 // import { useLocation } from '../utils/locationService'
 
 export default function Home() {
@@ -38,22 +39,33 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
 
-  useEffect(() => {
-    axios.get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
-      params: {
-        lat: 3.1355614577, //location?.latitude,
-        lng: 101.6928337142 //location?.longitude,
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
 
-      }
-    })
-      .then((response) => {
-        setWashrooms(response.data)
-      }).catch((error) => {
-        console.log("Error fetching data")
-      }).finally(() => {
-        setLoading(false);
-      })
-  })
+      axios
+        .get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
+          params: {
+            lat: 3.1355614577, // location?.latitude,
+            lng: 101.6928337142, // location?.longitude,
+          },
+        })
+        .then((response) => {
+          setWashrooms(response.data);
+        })
+        .catch((error) => {
+          console.log("Error fetching data", error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+      // return cleanup (if needed)
+      return () => {
+        setWashrooms([]);
+      };
+    }, [])
+  );
 
   // const washrooms: Washroom[] = [
   //   {id: 1, name : "i2", avg_rating: 4, description: "", features: {isBabyFriendly: false, isDisableFriendly: false, isPregnantFriendly: false}, photos: []},
