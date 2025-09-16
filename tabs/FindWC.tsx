@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, TextInput, FlatList, Platform, PermissionsAndroid } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
-import { Appbar } from 'react-native-paper';
+import { Appbar, FAB } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 
-import {useLocation} from '../utils/locationService'
+import { useLocation } from '../utils/locationService'
 
 export default function FindWC() {
 
@@ -82,7 +82,7 @@ export default function FindWC() {
   const [featureList, setFeatureList] = React.useState<boolean[]>([false, false, false]);
   const [destiLat, setDestiLat] = React.useState<number>(0);
   const [destiLng, setDestiLng] = React.useState<number>(0);
-  
+
 
   type GoogleMapPlace = {
     name: string;
@@ -169,7 +169,7 @@ export default function FindWC() {
 
   //fetch current location after map load
   useEffect(() => {
-    fetchLocation(); 
+    fetchLocation();
   }, [])
 
   type FindWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
@@ -270,6 +270,7 @@ export default function FindWC() {
           longitudeDelta: 0.05,
         }}
         showsUserLocation={true}
+         showsMyLocationButton={false}
       >
         {
           selectedMarker && (
@@ -309,7 +310,7 @@ export default function FindWC() {
                 setWashroomId(Number(washroom.id));
                 setDestiLat(washroom.lat);
                 setDestiLng(washroom.lng);
-                
+
               }}
             />
           ))}
@@ -389,7 +390,7 @@ export default function FindWC() {
               backgroundColor: "rgba(151, 233, 126, 1)",
               opacity: pressed ? 0.7 : 1,
             }]}
-          onPress={() => navigation.navigate("Navigate", {washroomId, name, destiLat, destiLng})}
+            onPress={() => navigation.navigate("Navigate", { washroomId, name, destiLat, destiLng })}
           >
 
             <Ionicons name="navigate" size={16} style={{ marginRight: 6 }} />
@@ -399,6 +400,30 @@ export default function FindWC() {
 
       </View>
       }
+
+      <FAB
+        icon="crosshairs-gps"
+        style={{
+          position: "absolute",
+          bottom: 30,
+          right: 30,
+          backgroundColor: "rgba(218, 254, 207, 1)",
+        }}
+        onPress={async () => {
+          await fetchLocation(); // update state
+          if (location && mapRef.current) {
+            mapRef.current.animateToRegion(
+              {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              },
+              1000 // ms
+            );
+          }
+        }}
+      />
     </View>
   );
 }

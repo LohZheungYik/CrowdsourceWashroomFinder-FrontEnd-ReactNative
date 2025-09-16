@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import GetLocation from "react-native-get-location";
 
@@ -26,8 +26,18 @@ const requestLocationPermission = async (): Promise<boolean> => {
 
 export const useLocation = () => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const lastCallRef = useRef<number>(0); // track last call timestamp
 
   const fetchLocation = async () => {
+    const now = Date.now();
+
+    // Prevent spam taps: only allow once every 2s
+    if (now - lastCallRef.current < 2000) {
+      //console.warn("Debounced: too many requests");
+      return;
+    }
+    lastCallRef.current = now;
+
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
       alert("Permission Denied");
@@ -49,7 +59,7 @@ export const useLocation = () => {
       try {
         const fallbackLoc = await GetLocation.getCurrentPosition({
           enableHighAccuracy: false,
-          timeout: 10000, // quicker retry
+          timeout: 10000,
         });
 
         setLocation({ latitude: fallbackLoc.latitude, longitude: fallbackLoc.longitude });

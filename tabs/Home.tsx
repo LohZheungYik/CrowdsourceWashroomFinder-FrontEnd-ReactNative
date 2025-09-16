@@ -1,20 +1,20 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Appbar } from 'react-native-paper';
+import { Appbar, FAB } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
-// import { useLocation } from '../utils/locationService'
+import { useLocation } from '../utils/locationService'
 
 export default function Home() {
 
   // //get current location
-  // const { location, fetchLocation } = useLocation();
-  // useEffect(() => {
-  //   fetchLocation();
-  // }, [])
+  const { location, fetchLocation } = useLocation();
+  useEffect(() => {
+    fetchLocation();
+  }, [])
 
 
   type Feature = {
@@ -46,8 +46,10 @@ export default function Home() {
       axios
         .get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
           params: {
-            lat: 3.1355614577, // location?.latitude,
-            lng: 101.6928337142, // location?.longitude,
+            lat: location == null ? 2.9431399 :location.latitude,
+            lng: location == null ? 101.7190007 : location.longitude,
+
+            //2.9431399 Longitude: 101.7190007
           },
         })
         .then((response) => {
@@ -64,7 +66,7 @@ export default function Home() {
       return () => {
         setWashrooms([]);
       };
-    }, [])
+    }, [location])
   );
 
   // const washrooms: Washroom[] = [
@@ -194,6 +196,16 @@ export default function Home() {
         />
       </View>
       <View style={{ height: 20 }} />
+      <FAB
+        icon="refresh"
+        style={{
+          position: "absolute",
+          bottom: 30,
+          right: 30,
+          backgroundColor: "rgba(218, 254, 207, 1)",
+        }}
+        onPress={fetchLocation}
+      />
     </SafeAreaView>
 
 
