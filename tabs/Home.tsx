@@ -5,8 +5,12 @@ import { Appbar, FAB } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useLocation } from '../utils/locationService'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+
+
 
 export default function Home() {
 
@@ -46,7 +50,7 @@ export default function Home() {
       axios
         .get("http://192.168.43.233:8000/api/washrooms/get_nearest_toilets", {
           params: {
-            lat: location == null ? 2.9431399 :location.latitude,
+            lat: location == null ? 2.9431399 : location.latitude,
             lng: location == null ? 101.7190007 : location.longitude,
 
             //2.9431399 Longitude: 101.7190007
@@ -121,7 +125,10 @@ export default function Home() {
           ))}
         </View>
       </View>
-      <TouchableOpacity onPress={() => alert(`Clicked ${item.name}`)}>
+      <TouchableOpacity onPress={() => {
+        let washroomId = item.id;
+        navigation.navigate("FindWC", {washroomId})
+      }}>
         <Ionicons name="eye" size={24} color="black" />
       </TouchableOpacity>
     </View>
@@ -130,6 +137,9 @@ export default function Home() {
   const SEARCH_HEIGHT = 50;
   const APPBAR_HEIGHT = 56;
   const insets = useSafeAreaInsets();
+
+  type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
+  const navigation = useNavigation<HomeNavigationProp>();
 
   return (
     <SafeAreaView style={{ flexDirection: "column", flex: 1, }}>

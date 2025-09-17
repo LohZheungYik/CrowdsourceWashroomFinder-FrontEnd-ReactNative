@@ -98,7 +98,7 @@ export default function WcDetails({ route }: WcDetailsProps) {
     return (
         washroom != null ? <ScrollView>
             <Appbar.Header style={{ backgroundColor: "rgba(77, 168, 87, 1)", }}>
-                <Appbar.BackAction onPress={() => navigation.navigate("FindWC")} color="white" />
+                <Appbar.BackAction onPress={() => { let washroom = null; navigation.navigate("FindWC", {washroomId})}} color="white" />
                 <Appbar.Content titleStyle={{ color: "white" }} title="Washroom Details" />
 
             </Appbar.Header>

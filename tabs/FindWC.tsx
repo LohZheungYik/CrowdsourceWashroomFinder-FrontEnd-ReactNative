@@ -7,13 +7,72 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import debounce from "lodash.debounce";
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 
 import { useLocation } from '../utils/locationService'
 
-export default function FindWC() {
+type FindWCProps = {
+  route: {
+    params: {
+      washroomId?: number;
+    };
+  };
+};
+
+export default function FindWC({ route }: FindWCProps) {
+
+  const [washrooms, setWashrooms] = useState<Washroom[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [washroom, setWashroom] = useState<Washroom | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+
+      const wid = route?.params?.washroomId;
+      // runs every time screen is focused
+      //setName("Test Name " + wid);
+      if (wid != null) {
+        setLoading(true);
+        axios.get(`http://192.168.43.233:8000/api/washrooms/${route.params.washroomId}/`)
+          .then((response) => {
+            const data: Washroom = response.data;
+            setWashroom(data);
+            setName(data.name)
+            setDescription(data.description);
+            setFeatureList([
+              data.features.isDisableFriendly,
+              data.features.isBabyFriendly,
+              data.features.isPregnantFriendly,
+            ]);
+            setRating(data.avg_rating);
+            setWashroomId(Number(data.id));
+            setDestiLat(data.lat);
+            setDestiLng(data.lng);
+          })
+          .catch((error) => {
+            console.error("Error fetching data", error);
+          })
+          .finally(() => {
+            setLoading(false);
+
+          });
+      }
+      return () => {
+        // cleanup when screen loses focus (optional)
+      };
+    }, [route.params?.washroomId])
+  );
+
+  // const wid = route?.params?.washroomId;
+
+  // if (wid == null) {
+  //   alert("No washroomId provided");
+  // } else {
+  //   alert("WashroomId:" + wid);
+  // }
+
 
   type MapFilter = { label: string };
 
@@ -52,8 +111,6 @@ export default function FindWC() {
     avg_rating: number;
   }
 
-  const [washrooms, setWashrooms] = useState<Washroom[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get("http://192.168.43.233:8000/api/washrooms")
@@ -75,7 +132,7 @@ export default function FindWC() {
 
   //info box items : name, desc, features, rating
 
-  const [washroomId, setWashroomId] = React.useState<number>(0);
+  const [washroomId, setWashroomId] = React.useState<number | null>();
   const [name, setName] = React.useState<string>('')
   const [description, setDescription] = React.useState<string>('');
   const [rating, setRating] = React.useState<number>(0);
@@ -143,7 +200,7 @@ export default function FindWC() {
   }
 
   const [selectedMarker, setSelectedMarker] = useState<{ lat: number; lng: number } | null>(null);
-
+  const [selectedWashroomId, setSelectedWashroomId] = useState<number | null>(null);
   const mapRef = React.useRef<MapView>(null);
 
 
@@ -270,7 +327,7 @@ export default function FindWC() {
           longitudeDelta: 0.05,
         }}
         showsUserLocation={true}
-         showsMyLocationButton={false}
+        showsMyLocationButton={false}
       >
         {
           selectedMarker && (
@@ -298,7 +355,14 @@ export default function FindWC() {
             <Marker
               key={washroom.id} // stable unique key
               coordinate={{ latitude: washroom.lat, longitude: washroom.lng }}
+              // pinColor={
+              //   selectedWashroomId === Number(washroom.id) ||
+              //     route?.params?.washroomId === Number(washroom.id)
+              //     ? "green"
+              //     : "red"
+              // }
               onPress={() => {
+                // setSelectedWashroomId(Number(washroom.id));
                 setName(washroom.name);
                 setDescription(washroom.description);
                 setFeatureList([
@@ -323,6 +387,7 @@ export default function FindWC() {
 
           <Text style={{ fontWeight: "bold", fontSize: 25 }} numberOfLines={2}
             ellipsizeMode="tail" >{name}</Text>
+
         </View>
         <View style={{ flexDirection: "row", marginLeft: "2%" }}>
           <Text style={{ fontSize: 15 }} numberOfLines={2}
@@ -370,7 +435,7 @@ export default function FindWC() {
               backgroundColor: "rgba(218, 254, 207, 1)",
               opacity: pressed ? 0.7 : 1,
             }]}
-            onPress={() => navigation.navigate("WcDetails", { washroomId })}
+            onPress={() => washroomId != null ? navigation.navigate("WcDetails", { washroomId }) : null}
 
           >
 
@@ -390,7 +455,7 @@ export default function FindWC() {
               backgroundColor: "rgba(151, 233, 126, 1)",
               opacity: pressed ? 0.7 : 1,
             }]}
-            onPress={() => navigation.navigate("Navigate", { washroomId, name, destiLat, destiLng })}
+            onPress={() => washroomId != null ? navigation.navigate("Navigate", { washroomId, name, destiLat, destiLng }) : null}
           >
 
             <Ionicons name="navigate" size={16} style={{ marginRight: 6 }} />
@@ -405,7 +470,7 @@ export default function FindWC() {
         icon="crosshairs-gps"
         style={{
           position: "absolute",
-          bottom: 30,
+          bottom: (name ? height * 0.3 : 0) + insets.bottom + 20,
           right: 30,
           backgroundColor: "rgba(218, 254, 207, 1)",
         }}
