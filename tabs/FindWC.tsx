@@ -101,7 +101,7 @@ export default function FindWC({ route }: FindWCProps) {
   }
 
   type Washroom = {
-    id: string;
+    id: number;
     name: string;
     description: string;
     lat: number;
@@ -353,7 +353,7 @@ export default function FindWC({ route }: FindWCProps) {
           })
           .map(washroom => (
             <Marker
-              key={washroom.id} // stable unique key
+              key={`${washroom.id}-${selectedWashroomId === washroom.id}`} // stable unique key
               coordinate={{ latitude: washroom.lat, longitude: washroom.lng }}
               // pinColor={
               //   selectedWashroomId === Number(washroom.id) ||
@@ -361,8 +361,9 @@ export default function FindWC({ route }: FindWCProps) {
               //     ? "green"
               //     : "red"
               // }
+              pinColor= {selectedWashroomId === washroom.id ? "green" : "red"}
               onPress={() => {
-                // setSelectedWashroomId(Number(washroom.id));
+                setSelectedWashroomId(washroom.id);
                 setName(washroom.name);
                 setDescription(washroom.description);
                 setFeatureList([
