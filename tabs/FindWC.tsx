@@ -184,7 +184,7 @@ export default function FindWC({ route }: FindWCProps) {
   const handleSelect = (place: GoogleMapPlace) => {
     setQuery(place.name);
     setSelectedMarker({ lat: place.lat, lng: place.lng });
-
+    setSelectedWashroomId(null);
     mapRef.current?.animateToRegion(
       {
         latitude: place.lat,
@@ -339,7 +339,7 @@ export default function FindWC({ route }: FindWCProps) {
               }}
               pinColor="blue"
               title={"Currently searched Location"}
-              description="Tap on nearby red markers (washrooms)"
+              description="Tap on nearby markers (washrooms)"
             />
           )}
 
@@ -353,15 +353,22 @@ export default function FindWC({ route }: FindWCProps) {
           })
           .map(washroom => (
             <Marker
-              key={`${washroom.id}-${selectedWashroomId === washroom.id}`} // stable unique key
+              key={`${washroom.id}-${selectedWashroomId === washroom.id}`}
               coordinate={{ latitude: washroom.lat, longitude: washroom.lng }}
               // pinColor={
-              //   selectedWashroomId === Number(washroom.id) ||
-              //     route?.params?.washroomId === Number(washroom.id)
-              //     ? "green"
-              //     : "red"
+              //   route?.params?.washroomId === washroom.id
+              //     ? "orange" // passed-in washroom
+              //     : selectedWashroomId === washroom.id
+              //       ? "green"  // tapped washroom
+              //       : "red"    // others
               // }
-              pinColor= {selectedWashroomId === washroom.id ? "green" : "red"}
+              pinColor={
+                selectedWashroomId === washroom.id
+                  ? "green" // tapped washroom
+                  : route?.params?.washroomId === washroom.id
+                    ? "orange" // passed-in washroom
+                    : "red"    // others
+              }
               onPress={() => {
                 setSelectedWashroomId(washroom.id);
                 setName(washroom.name);
@@ -375,7 +382,6 @@ export default function FindWC({ route }: FindWCProps) {
                 setWashroomId(Number(washroom.id));
                 setDestiLat(washroom.lat);
                 setDestiLng(washroom.lng);
-
               }}
             />
           ))}
