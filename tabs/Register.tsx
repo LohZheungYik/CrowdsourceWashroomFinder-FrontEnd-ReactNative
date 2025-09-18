@@ -10,22 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Register() {
 
-    useFocusEffect(
-        useCallback(() => {
-            const logout = async () => {
-                await AsyncStorage.setItem("userId", "");
-                await AsyncStorage.setItem("userEmail", "");
-
-
-                const id = await AsyncStorage.getItem("userId");
-                const email = await AsyncStorage.getItem("userEmail");
-                console.log("Loaded from storage:", id, email);
-                alert(id);
-                alert(email);
-            };
-            logout();
-        }, [])
-    );
+    
 
 
     const [email, setEmail] = useState("");

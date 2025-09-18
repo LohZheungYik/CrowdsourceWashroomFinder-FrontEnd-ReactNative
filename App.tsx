@@ -23,14 +23,14 @@ export default function App() {
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           <Tab.Screen name="Home" component={Home} />
           <Tab.Screen name="FindWC" component={FindWC} />
-          <Tab.Screen name="Navigate" component={Navigate} />
+          {/* <Tab.Screen name="Navigate" component={Navigate} />
           <Tab.Screen name="Survey" component={Survey} options={{
             tabBarStyle: { display: "none" }, // hides the tab bar
           }} />
           <Tab.Screen name="AddWC" component={AddWC} />
           <Tab.Screen name="WcDetails" component={WcDetails} />
-          <Tab.Screen name="Register" component={Register} />
-          <Tab.Screen name="Login" component={Login} />
+          <Tab.Screen name="Register" component={Register} /> */}
+          <Tab.Screen name="Logout" component={Login} />
 
         </Tab.Navigator>
       </NavigationContainer>
