@@ -13,21 +13,24 @@ import Register from './tabs/Register';
 import Test from './tabs/Test';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { RootStackParamList } from './navigation/types';
 
-const Tab = createBottomTabNavigator();
-
+const Tab = createBottomTabNavigator<RootStackParamList>();
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
-          <Tab.Screen name="Home" component={Home}/>
+          <Tab.Screen name="Home" component={Home} />
           <Tab.Screen name="FindWC" component={FindWC} />
           <Tab.Screen name="Navigate" component={Navigate} />
-          <Tab.Screen name="Survey" component={Survey} />
+          <Tab.Screen name="Survey" component={Survey} options={{
+            tabBarStyle: { display: "none" }, // hides the tab bar
+          }} />
           <Tab.Screen name="AddWC" component={AddWC} />
           <Tab.Screen name="WcDetails" component={WcDetails} />
-          <Tab.Screen name="Test" component={Test} />
+          <Tab.Screen name="Register" component={Register} />
+          <Tab.Screen name="Login" component={Login} />
 
         </Tab.Navigator>
       </NavigationContainer>

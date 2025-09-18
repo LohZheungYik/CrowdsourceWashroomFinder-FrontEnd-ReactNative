@@ -6,6 +6,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
+import {showToast} from '../utils/toast';
 
 type SurveyProps = {
     route: {
@@ -127,14 +128,7 @@ export default function Survey({ route }: SurveyProps) {
 
     }
 
-    const showToast = (message: string) => {
-        if (Platform.OS === "android") {
-            ToastAndroid.show(message, ToastAndroid.SHORT);
-        } else {
-            // fallback for iOS
-            console.log(message);
-        }
-    };
+    
 
     return (
         <View style={{ flexDirection: "column", flex: 1, marginTop: 56 }}>

@@ -9,15 +9,32 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useLocation } from '../utils/locationService'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
+import { Globals } from '../utils/globals'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
 export default function Home() {
 
+  useFocusEffect(
+    useCallback(() => {
+      const loadUser = async () => {
+        const id = await AsyncStorage.getItem("userId");
+        const email = await AsyncStorage.getItem("userEmail");
+        console.log("Loaded from storage:", id, email);
+        alert(id);
+        alert(email);
+      };
+      loadUser();
+    }, [])
+  );
+
+
   // //get current location
   const { location, fetchLocation } = useLocation();
   useEffect(() => {
     fetchLocation();
+
   }, [])
 
 
@@ -127,7 +144,7 @@ export default function Home() {
       </View>
       <TouchableOpacity onPress={() => {
         let washroomId = item.id;
-        navigation.navigate("FindWC", {washroomId})
+        navigation.navigate("FindWC", { washroomId })
       }}>
         <Ionicons name="eye" size={24} color="black" />
       </TouchableOpacity>
@@ -203,6 +220,9 @@ export default function Home() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderWashrooms}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListHeaderComponent={<View style={{ paddingLeft: "5%", paddingTop: "3%" }}>
+            <Text style={{ fontWeight: "bold", color: "gray" }}>Nearby Washrooms</Text>
+          </View>}
         />
       </View>
       <View style={{ height: 20 }} />

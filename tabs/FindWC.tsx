@@ -8,7 +8,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import debounce from "lodash.debounce";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 
 import { useLocation } from '../utils/locationService'
@@ -16,12 +16,16 @@ import { useLocation } from '../utils/locationService'
 type FindWCProps = {
   route: {
     params: {
-      washroomId?: number;
+      washroomId?: number | null;
     };
   };
 };
 
-export default function FindWC({ route }: FindWCProps) {
+type Props = NativeStackScreenProps<RootStackParamList, 'FindWC'>;
+
+export default function FindWC({ route, navigation }: Props) {
+  
+//export default function FindWC({ route }: FindWCProps) {
 
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
   const [loading, setLoading] = useState(true);
@@ -229,9 +233,9 @@ export default function FindWC({ route }: FindWCProps) {
     fetchLocation();
   }, [])
 
-  type FindWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
+  //type FindWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
 
-  const navigation = useNavigation<FindWCNavigationProp>();
+  //const navi = useNavigation<FindWCNavigationProp>();
 
   return (
     <View style={{ flex: 1, flexDirection: "column" }}>

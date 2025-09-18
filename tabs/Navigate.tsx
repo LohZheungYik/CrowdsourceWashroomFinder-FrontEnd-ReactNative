@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 type NavigateProps = {
   route: {
     params: {
-      washroomId: number, 
+      washroomId: number,
       name: string,
       destiLat: number,
       destiLng: number
@@ -203,7 +203,7 @@ export default function Navigate({ route }: NavigateProps) {
       }
       fetchingRef.current = false;
     };
-  }, []); 
+  }, []);
 
   const start = location == null
     ? { latitude: 3.139, longitude: 101.6869 }
@@ -273,7 +273,11 @@ export default function Navigate({ route }: NavigateProps) {
       >
         <View style={{ flexDirection: 'row', marginLeft: '2%', marginTop: 20 }}>
           <Pressable
-            onPress={()=> navigation.navigate("Survey", {washroomId: route.params.washroomId})}
+            onPress={() =>
+              navigation.navigate("Survey", {
+                washroomId: route.params.washroomId,
+              })
+            }
             android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
             style={({ pressed }) => [
               {
@@ -295,7 +299,9 @@ export default function Navigate({ route }: NavigateProps) {
           </Pressable>
 
           <Pressable
-            onPress={() => navigation.navigate("FindWC")}
+            onPress={() =>
+              navigation.navigate("FindWC", { washroomId: null })
+            } 
             android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
             style={({ pressed }) => [
               {

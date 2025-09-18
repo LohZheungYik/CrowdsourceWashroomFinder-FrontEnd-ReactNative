@@ -4,4 +4,8 @@ export type RootStackParamList = {
   Navigate: {washroomId: number, name: string, destiLat: number, destiLng: number}
   Survey: {washroomId: number};
   Home: undefined;
+  AddWC: undefined;
+  Test: undefined;
+  Register: undefined;
+  Login: undefined;
 };
