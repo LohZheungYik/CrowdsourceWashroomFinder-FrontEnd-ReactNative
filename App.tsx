@@ -9,6 +9,7 @@ import WcDetails from './tabs/WcDetails';
 import Register from './tabs/Register';
 import FindWC from './tabs/FindWC';
 import Home from './tabs/Home';
+import Login from './tabs/Login';
 
 import { MainTabs } from './navigation/AppNavigator';
 
@@ -21,6 +22,8 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {/* Tabs as the main entry */}
           <Stack.Screen name="Tabs" component={MainTabs} />
+
+          <Stack.Screen name="Login" component={Login} /> 
 
           {/* Stack-only screens (not shown in tab bar) */}
           {/* <Stack.Screen name="FindWC" component={FindWC} /> */}
