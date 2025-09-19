@@ -14,6 +14,7 @@ import Test from './tabs/Test';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootStackParamList } from './navigation/types';
+import AppNavigator from './navigation/AppNavigator'
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 export default function App() {
@@ -31,7 +32,7 @@ export default function App() {
           <Tab.Screen name="WcDetails" component={WcDetails} />
           <Tab.Screen name="Register" component={Register} /> */}
           <Tab.Screen name="Logout" component={Login} />
-
+          <Tab.Screen name="Stack" component={AppNavigator} options={{ tabBarButton: () => null }} />
         </Tab.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

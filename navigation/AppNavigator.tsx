@@ -15,13 +15,14 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="FindWC" component={FindWC} />
-      <Stack.Screen name="WcDetails" component={WcDetails} />
-      <Stack.Screen name="Navigate" component={Navigate} />
+      <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+      <Stack.Screen name="FindWC" component={FindWC} options={{ headerShown: false }} />
+      <Stack.Screen name="WcDetails" component={WcDetails} options={{ headerShown: false }}/>
+      <Stack.Screen name="Navigate" component={Navigate} options={{ headerShown: false }} />
       <Stack.Screen name="Survey" component={Survey} options={{
         gestureEnabled: false,       // disables swipe back (iOS)
         headerBackVisible: false,    // hides back button (RN v6+)
+        
       }} />
     </Stack.Navigator>
   );

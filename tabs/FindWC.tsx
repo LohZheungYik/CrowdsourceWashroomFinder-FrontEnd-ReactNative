@@ -24,8 +24,8 @@ type FindWCProps = {
 type Props = NativeStackScreenProps<RootStackParamList, 'FindWC'>;
 
 export default function FindWC({ route, navigation }: Props) {
-  
-//export default function FindWC({ route }: FindWCProps) {
+
+  //export default function FindWC({ route }: FindWCProps) {
 
   const [washrooms, setWashrooms] = useState<Washroom[]>([]);
   const [loading, setLoading] = useState(true);
@@ -446,8 +446,17 @@ export default function FindWC({ route, navigation }: Props) {
               backgroundColor: "rgba(218, 254, 207, 1)",
               opacity: pressed ? 0.7 : 1,
             }]}
-            onPress={() => washroomId != null ? navigation.navigate("WcDetails", { washroomId }) : null}
-
+            onPress={() => {
+              if (washroomId != null) {
+                //navigation.navigate("WcDetails", { washroomId });
+                navigation.navigate("Stack", {
+                  screen: "WcDetails",
+                  params: { washroomId },
+                });
+              } else {
+                console.warn("No washroom selected");
+              }
+            }}
           >
 
             <Ionicons name="information-circle" size={16} style={{ marginRight: 6 }} />

@@ -8,4 +8,6 @@ export type RootStackParamList = {
   Test: undefined;
   Register: undefined;
   Login: undefined;
+    Stack: { screen?: keyof RootStackParamList; params?: any };  // 👈 add this
+
 };
