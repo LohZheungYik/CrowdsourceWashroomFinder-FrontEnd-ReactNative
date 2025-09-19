@@ -144,7 +144,13 @@ export default function Home() {
       </View>
       <TouchableOpacity onPress={() => {
         let washroomId = item.id;
-        navigation.navigate("FindWC", { washroomId })
+        //navigation.navigate("FindWC", { washroomId })
+        //navigation.navigate("FindWC", { washroomId: item.id });
+        
+        navigation.navigate("Tabs", {
+          screen: "Find Washroom",
+          params: { washroomId: item.id },
+        });
       }}>
         <Ionicons name="eye" size={24} color="black" />
       </TouchableOpacity>
@@ -155,9 +161,8 @@ export default function Home() {
   const APPBAR_HEIGHT = 56;
   const insets = useSafeAreaInsets();
 
-  type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'FindWC'>;
+  type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Tabs'>;
   const navigation = useNavigation<HomeNavigationProp>();
-
   return (
     <SafeAreaView style={{ flexDirection: "column", flex: 1, }}>
 

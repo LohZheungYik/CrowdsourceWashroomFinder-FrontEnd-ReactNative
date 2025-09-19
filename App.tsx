@@ -8,8 +8,9 @@ import AddWC from './tabs/AddWC';
 import WcDetails from './tabs/WcDetails';
 import Register from './tabs/Register';
 import FindWC from './tabs/FindWC';
+import Home from './tabs/Home';
 
-import {MainTabs} from './navigation/AppNavigator';
+import { MainTabs } from './navigation/AppNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,8 @@ export default function App() {
           <Stack.Screen name="Survey" component={Survey} />
           <Stack.Screen name="AddWC" component={AddWC} />
           <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Home" component={Home} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

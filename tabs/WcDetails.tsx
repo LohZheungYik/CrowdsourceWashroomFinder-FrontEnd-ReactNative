@@ -100,7 +100,7 @@ export default function WcDetails({ route }: WcDetailsProps) {
             <Appbar.Header style={{ backgroundColor: "rgba(77, 168, 87, 1)", }}>
                 <Appbar.BackAction onPress={() => {
                     let washroom = null; navigation.navigate("Tabs", {
-                        screen: "FindWC",
+                        screen: "Find Washroom",
                         params: { washroomId },
                     });
                 }} color="white" />
