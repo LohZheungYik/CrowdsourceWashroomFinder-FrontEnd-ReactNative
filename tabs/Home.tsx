@@ -1,6 +1,6 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ListRenderItem, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Appbar, FAB } from 'react-native-paper';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -122,12 +122,14 @@ export default function Home() {
     color: string,
   }
 
+  
 
   const featureList: FeatureList[] = [
     { name: "Find Washroom", image: require("../assets/images/wc.png"), color: "rgba(219, 249, 249, 1)" },
     { name: "Add Washroom", image: require("../assets/images/wc.png"), color: "rgba(218, 254, 207, 1)" },
-    { name: "Share Washroom", image: require("../assets/images/wc.png"), color: "rgba(255, 231, 233, 1)" },
   ];
+
+
 
   const renderWashrooms: ListRenderItem<Washroom> = ({ item }) => (
     <View style={styles.itemContainer}>
@@ -146,7 +148,7 @@ export default function Home() {
         let washroomId = item.id;
         //navigation.navigate("FindWC", { washroomId })
         //navigation.navigate("FindWC", { washroomId: item.id });
-        
+
         navigation.navigate("Tabs", {
           screen: "Find Washroom",
           params: { washroomId: item.id },
@@ -163,15 +165,22 @@ export default function Home() {
 
   type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Tabs'>;
   const navigation = useNavigation<HomeNavigationProp>();
+  
+  
+  
   return (
     <SafeAreaView style={{ flexDirection: "column", flex: 1, }}>
 
       <Appbar.Header style={{ backgroundColor: "rgba(77, 168, 87, 1)" }}>
         <Appbar.Content title="" />
       </Appbar.Header>
-
-      <TextInput
-        placeholder="🔍 Type here to search...."
+      <Pressable
+        onPress={() =>
+          navigation.navigate("Tabs", {
+            screen: "Find Washroom",
+            //params: { washroomId: null },
+          })
+        }
         style={{
           width: "90%",
           height: 50,
@@ -182,28 +191,42 @@ export default function Home() {
           marginHorizontal: "5%",
           zIndex: 10,
           elevation: 24,
-
+          justifyContent: "center",
+          paddingHorizontal: 12,
         }}
-      />
+      >
+        <Text style={{ color: "gray" }}>🔍 Type here to search....</Text>
+      </Pressable>
 
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{ height: 100, marginTop: 50, flex: 1 }}>
         {
           featureList.map((_, i) => (
-            <View key={i} style={{ flexDirection: "row-reverse", alignItems: "flex-end", borderRadius: 15, marginHorizontal: 10, backgroundColor: featureList[i].color, width: 250, height: 100, borderColor: "black", elevation: 24 }}>
-              <Text style={{ zIndex: 2, position: "absolute", top: 0, left: 0, fontSize: 20, marginLeft: "5%", marginTop: "5%", fontWeight: "bold" }}>{featureList[i].name}</Text>
-              <View style={{ zIndex: 1, position: "absolute", borderWidth: 0, borderColor: "black", width: "70%", height: "70%", marginBottom: "5%", opacity: 0.4 }}>
-                <Image
-                  source={featureList[i].image}
-                  style={{ width: "100%", height: "100%", resizeMode: "contain" }}
-                />
+            <Pressable key={i}
+              style = {({pressed}) => [{
+                opacity: pressed ? 0.7 : 1,
+              }]}
+              onPress={() =>
+                navigation.navigate("Tabs", {
+                  screen: "Find Washroom",
+                  // params: { washroomId: null },
+                })
+              }>
+              <View style={{ flexDirection: "row-reverse", alignItems: "flex-end", borderRadius: 15, marginHorizontal: 10, backgroundColor: featureList[i].color, width: 250, height: 100, borderColor: "black", elevation: 24 }}>
+                <Text style={{ zIndex: 2, position: "absolute", top: 0, left: 0, fontSize: 20, marginLeft: "5%", marginTop: "5%", fontWeight: "bold" }}>{featureList[i].name}</Text>
+                <View style={{ zIndex: 1, position: "absolute", borderWidth: 0, borderColor: "black", width: "70%", height: "70%", marginBottom: "5%", opacity: 0.4 }}>
+                  <Image
+                    source={featureList[i].image}
+                    style={{ width: "100%", height: "100%", resizeMode: "contain" }}
+                  />
+                </View>
+                <View style={{ zIndex: 2, borderWidth: 0, borderColor: "black", width: "40%", height: "50%", marginBottom: "5%" }}>
+                  <Image
+                    source={featureList[i].image}
+                    style={{ width: "100%", height: "100%", resizeMode: "contain" }}
+                  />
+                </View>
               </View>
-              <View style={{ zIndex: 2, borderWidth: 0, borderColor: "black", width: "40%", height: "50%", marginBottom: "5%" }}>
-                <Image
-                  source={require("../assets/images/wc.png")}
-                  style={{ width: "100%", height: "100%", resizeMode: "contain" }}
-                />
-              </View>
-            </View>
+            </Pressable>
           ))
         }
       </ScrollView>
