@@ -124,6 +124,7 @@ export default function Register() {
             behavior={Platform.OS === "ios" ? "padding" : "height"} // padding for iOS, height for Android
         >
             <Appbar.Header style={{ backgroundColor: "rgba(218, 254, 207, 1)" }}>
+                <Appbar.BackAction onPress={() => navigation.goBack()} />
                 <Appbar.Content titleStyle={{ color: "white", textAlign: "center" }} title="" />
 
             </Appbar.Header>

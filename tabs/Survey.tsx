@@ -6,7 +6,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import {showToast} from '../utils/toast';
+import { showToast } from '../utils/toast';
 
 type SurveyProps = {
     route: {
@@ -40,6 +40,7 @@ export default function Survey({ route }: SurveyProps) {
         }, [route.params.washroomId])
     );
 
+
     // //onload function
     // useFocusEffect(
     //     useCallback(() => {
@@ -69,7 +70,7 @@ export default function Survey({ route }: SurveyProps) {
 
     type SurveyItem = { label: string }
 
-    let surveyItems = [
+    let surveyItems: SurveyItem[] = [
         { label: "☹️ Locked" },
         { label: "☹️ Need request keys" },
         { label: "☹️ Long queue" },
@@ -80,7 +81,6 @@ export default function Survey({ route }: SurveyProps) {
 
     ]
 
-    const [ratingError, setRatingError] = useState<string>("")
 
     type SurveyNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Survey'>;
 
@@ -90,7 +90,8 @@ export default function Survey({ route }: SurveyProps) {
     const handleSubmit = async () => {
         if (!washroom) return;
         if (rating == 0) {
-            setRatingError("Please set a rating.")
+            //setRatingError("Please set a rating.")
+            showToast("Please set a star rating");
             return;
         }
 
@@ -117,9 +118,12 @@ export default function Survey({ route }: SurveyProps) {
 
             setRating(0);
             setChecked([false, false, false, false, false, false, false]);
-            setRatingError("");
-            
-            navigation.navigate("Home")
+            //setRatingError("");
+
+            // navigation.navigate("Home")
+            navigation.navigate("Tabs", {
+                screen: "Home",
+            });
 
         } catch (error) {
             showToast("Form submission failed");
@@ -128,7 +132,7 @@ export default function Survey({ route }: SurveyProps) {
 
     }
 
-    
+
 
     return (
         <View style={{ flexDirection: "column", flex: 1, marginTop: 56 }}>

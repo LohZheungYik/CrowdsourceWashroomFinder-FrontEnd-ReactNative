@@ -22,8 +22,8 @@ export default function Home() {
         const id = await AsyncStorage.getItem("userId");
         const email = await AsyncStorage.getItem("userEmail");
         console.log("Loaded from storage:", id, email);
-        alert(id);
-        alert(email);
+        // alert(id);
+        // alert(email);
       };
       loadUser();
     }, [])
@@ -120,13 +120,26 @@ export default function Home() {
     name: string,
     image: number,
     color: string,
+    onTap: any
   }
 
-  
+  const goFindWC = () => {
+    navigation.navigate("Tabs", {
+      screen: "Find Washroom",
+      // params: { washroomId: null },
+    })
+  }
+
+  const goAddWC = () => {
+    navigation.navigate("Tabs", {
+      screen: "Add Washroom",
+      // params: { washroomId: null },
+    })
+  }
 
   const featureList: FeatureList[] = [
-    { name: "Find Washroom", image: require("../assets/images/wc.png"), color: "rgba(219, 249, 249, 1)" },
-    { name: "Add Washroom", image: require("../assets/images/wc.png"), color: "rgba(218, 254, 207, 1)" },
+    { name: "Find Washroom", image: require("../assets/images/wc.png"), color: "rgba(219, 249, 249, 1)", onTap: goFindWC },
+    { name: "Add Washroom", image: require("../assets/images/wc.png"), color: "rgba(218, 254, 207, 1)", onTap: goAddWC },
   ];
 
 
@@ -165,9 +178,9 @@ export default function Home() {
 
   type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Tabs'>;
   const navigation = useNavigation<HomeNavigationProp>();
-  
-  
-  
+
+
+
   return (
     <SafeAreaView style={{ flexDirection: "column", flex: 1, }}>
 
@@ -202,15 +215,10 @@ export default function Home() {
         {
           featureList.map((_, i) => (
             <Pressable key={i}
-              style = {({pressed}) => [{
+              style={({ pressed }) => [{
                 opacity: pressed ? 0.7 : 1,
               }]}
-              onPress={() =>
-                navigation.navigate("Tabs", {
-                  screen: "Find Washroom",
-                  // params: { washroomId: null },
-                })
-              }>
+              onPress={featureList[i].onTap}>
               <View style={{ flexDirection: "row-reverse", alignItems: "flex-end", borderRadius: 15, marginHorizontal: 10, backgroundColor: featureList[i].color, width: 250, height: 100, borderColor: "black", elevation: 24 }}>
                 <Text style={{ zIndex: 2, position: "absolute", top: 0, left: 0, fontSize: 20, marginLeft: "5%", marginTop: "5%", fontWeight: "bold" }}>{featureList[i].name}</Text>
                 <View style={{ zIndex: 1, position: "absolute", borderWidth: 0, borderColor: "black", width: "70%", height: "70%", marginBottom: "5%", opacity: 0.4 }}>

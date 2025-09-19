@@ -11,6 +11,12 @@ import ImagePicker from 'react-native-image-crop-picker';
 import debounce from 'lodash.debounce';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
+import { showToast } from '../utils/toast';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import { useNavigation } from '@react-navigation/native';
+
+
 export default function AddWC() {
 
     //name, location detail, lat, lng, features
@@ -77,6 +83,11 @@ export default function AddWC() {
 
     }
 
+    type AddWCNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Survey'>;
+    
+    const navigation = useNavigation<AddWCNavigationProp>();
+    
+
     const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [selectedLocationError, setSelectedLocationError] = useState(false);
     const mapRef = useRef<MapView>(null);
@@ -117,6 +128,7 @@ export default function AddWC() {
 
         if (name.trim() === "") {
             setNameError(true);
+            setUploading(false);
             return;
         } else {
             setNameError(false);
@@ -124,6 +136,7 @@ export default function AddWC() {
 
         if (locationDetails.trim() === "") {
             setLocationDetailsError(true);
+            setUploading(false);
             return;
         } else {
             setLocationDetailsError(false);
@@ -131,6 +144,7 @@ export default function AddWC() {
 
         if (selectedLocation === null) {
             setSelectedLocationError(true);
+            setUploading(false);
             return;
         } else {
             setSelectedLocationError(false);
@@ -143,6 +157,7 @@ export default function AddWC() {
         if (!imageUrls || imageUrls.length === 0) {
             
             setImagesError(true);
+            setUploading(false);
             return;
         }
         let wcData = {
@@ -166,6 +181,12 @@ export default function AddWC() {
                 },
             });
             console.log("WC posted:", res.data);
+            showToast("Washroom posted successfully")
+            navigation.navigate("Tabs", {
+                screen: "Home",
+            });
+
+
         } catch (err) {
             console.error("Error posting washroom:", err);
             alert("Failed to submit washroom.");

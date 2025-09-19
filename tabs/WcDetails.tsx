@@ -159,56 +159,56 @@ export default function WcDetails({ route }: WcDetailsProps) {
 
             <View style={{ marginHorizontal: "2%" }}>
                 {
-                    washroom.count_isLocked > 10 ||
-                        washroom.count_isKeyNeeded > 10 ||
-                        washroom.count_isQueue > 10 ||
-                        washroom.count_isInsecure > 10 ||
-                        washroom.count_isElderHarsh > 10 ||
-                        washroom.count_isPregnantHarsh > 10 ||
-                        washroom.count_isBabyHarsh > 10 ?
+                    washroom.count_isLocked > 5 ||
+                        washroom.count_isKeyNeeded > 5 ||
+                        washroom.count_isQueue > 5 ||
+                        washroom.count_isInsecure > 5 ||
+                        washroom.count_isElderHarsh > 5 ||
+                        washroom.count_isPregnantHarsh > 5 ||
+                        washroom.count_isBabyHarsh > 5 ?
                         <Text style={{ fontSize: 20 }}>⚠️ Things to watch out</Text>
                         : <></>
                 }
             </View>
 
             {
-                washroom.count_isLocked > 10 ?
+                washroom.count_isLocked > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report it is locked</Text>
                     : <></>
             }
 
             {
-                washroom.count_isKeyNeeded > 10 ?
+                washroom.count_isKeyNeeded > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report key request is needed </Text>
                     : <></>
             }
 
             {
-                washroom.count_isQueue > 10 ?
+                washroom.count_isQueue > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report queue is needed </Text>
                     : <></>
             }
 
             {
-                washroom.count_isInsecure > 10 ?
+                washroom.count_isInsecure > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report it is insecure </Text>
                     : <></>
             }
 
             {
-                washroom.count_isElderHarsh > 10 ?
+                washroom.count_isElderHarsh > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report it is not elder-friendly </Text>
                     : <></>
             }
 
             {
-                washroom.count_isPregnantHarsh > 10 ?
+                washroom.count_isPregnantHarsh > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report it is not pregnant-friendly </Text>
                     : <></>
             }
 
             {
-                washroom.count_isBabyHarsh > 10 ?
+                washroom.count_isBabyHarsh > 5 ?
                     <Text style={{ marginHorizontal: "2%", marginVertical: 5, fontSize: 15 }}>🙁 Past users report it is not baby-friendly </Text>
                     : <></>
             }

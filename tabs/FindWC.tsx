@@ -448,7 +448,13 @@ export default function FindWC({ route, navigation }: Props) {
             }]}
             onPress={() => {
               if (washroomId != null) {
-                navigation.navigate("WcDetails", { washroomId });
+                //navigation.navigate("WcDetails", { washroomId });
+
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Login" }], // clears all and pushes Login
+                });
+
                 // navigation.navigate("Stack", {
                 //   screen: "WcDetails",
                 //   params: { washroomId },

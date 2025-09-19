@@ -22,8 +22,8 @@ export default function Login() {
                 const id = await AsyncStorage.getItem("userId");
                 const email = await AsyncStorage.getItem("userEmail");
                 console.log("Loaded from storage:", id, email);
-                alert(id);
-                alert(email);
+                // alert(id);
+                // alert(email);
             };
             logout();
         }, [])
@@ -199,7 +199,37 @@ export default function Login() {
                 </Pressable>
             </View>
 
+            <View
+                style={{
+                    height: 1, // thinnest line per device
+                    backgroundColor: "#ccc",          // light gray
+                    marginVertical: 10,               // spacing
+                }}
+            />
 
-        </KeyboardAvoidingView>
+            <View style={{ marginTop: 20, marginBottom: 20, marginHorizontal: "5%" }}>
+
+                <Pressable
+                    onPress={() => {navigation.navigate("Register");}}
+                android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
+                style={({ pressed }) => [{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 15,
+                    elevation: 4,
+                    marginRight: 8,
+                    backgroundColor: "rgba(154, 228, 132, 1)",
+                    opacity: pressed ? 0.7 : 1,
+                }]}>
+
+                <Text style={{ color: "black", fontSize: 16 }}>Register</Text>
+            </Pressable>
+        </View>
+
+
+        </KeyboardAvoidingView >
     );
 }

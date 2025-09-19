@@ -300,7 +300,11 @@ export default function Navigate({ route }: NavigateProps) {
 
           <Pressable
             onPress={() =>
-              navigation.navigate("FindWC", { washroomId: null })
+              //navigation.navigate("FindWC", { washroomId: null })
+              navigation.navigate("Tabs", {
+                        screen: "Find Washroom",
+                        //params: { washroomId },
+                    })
             } 
             android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
             style={({ pressed }) => [

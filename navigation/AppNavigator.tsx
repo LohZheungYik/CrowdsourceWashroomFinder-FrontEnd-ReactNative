@@ -27,6 +27,7 @@ export function MainTabs() {
         ),
       }} />
       <Tab.Screen name="Logout" component={Login} options={{
+        tabBarStyle: { display: "none" },
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="log-out-outline" color={color} size={size} />
         ),
