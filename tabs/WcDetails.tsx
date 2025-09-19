@@ -98,11 +98,17 @@ export default function WcDetails({ route }: WcDetailsProps) {
     return (
         washroom != null ? <ScrollView>
             <Appbar.Header style={{ backgroundColor: "rgba(77, 168, 87, 1)", }}>
-                <Appbar.BackAction onPress={() => { let washroom = null; navigation.navigate("FindWC", {washroomId})}} color="white" />
+                <Appbar.BackAction onPress={() => {
+                    let washroom = null; navigation.navigate("Tabs", {
+                        screen: "FindWC",
+                        params: { washroomId },
+                    });
+                }} color="white" />
+
                 <Appbar.Content titleStyle={{ color: "white" }} title="Washroom Details" />
 
             </Appbar.Header>
-            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginTop: 20}}>
+            <View style={{ flexDirection: "row", marginHorizontal: "2%", marginTop: 20 }}>
                 <Text style={{ fontWeight: "bold", fontSize: 25 }}
                     ellipsizeMode="tail" >{washroom.name}</Text>
             </View>
@@ -139,7 +145,7 @@ export default function WcDetails({ route }: WcDetailsProps) {
                     washroom.photos.map((imgUrl, i) => (
                         <View key={i}>
                             <Image
-                                source={{uri: imgUrl.photoUrl}}
+                                source={{ uri: imgUrl.photoUrl }}
                                 style={{ width: 300, height: 200, resizeMode: "contain", marginHorizontal: 2 }}
                             />
                         </View>

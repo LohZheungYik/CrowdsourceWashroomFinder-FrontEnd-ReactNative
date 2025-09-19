@@ -1,39 +1,34 @@
-import React from 'react';
-
+import React from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from './tabs/Home';
-import FindWC from './tabs/FindWC';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Navigate from './tabs/Navigate';
 import Survey from './tabs/Survey';
 import AddWC from './tabs/AddWC';
 import WcDetails from './tabs/WcDetails';
-import Login from './tabs/Login';
 import Register from './tabs/Register';
-import Test from './tabs/Test';
+import FindWC from './tabs/FindWC';
 
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { RootStackParamList } from './navigation/types';
-import AppNavigator from './navigation/AppNavigator'
+import {MainTabs} from './navigation/AppNavigator';
 
-const Tab = createBottomTabNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator();
+
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
-          <Tab.Screen name="Home" component={Home} />
-          <Tab.Screen name="FindWC" component={FindWC} />
-          {/* <Tab.Screen name="Navigate" component={Navigate} />
-          <Tab.Screen name="Survey" component={Survey} options={{
-            tabBarStyle: { display: "none" }, // hides the tab bar
-          }} />
-          <Tab.Screen name="AddWC" component={AddWC} />
-          <Tab.Screen name="WcDetails" component={WcDetails} />
-          <Tab.Screen name="Register" component={Register} /> */}
-          <Tab.Screen name="Logout" component={Login} />
-          <Tab.Screen name="Stack" component={AppNavigator} options={{ tabBarButton: () => null }} />
-        </Tab.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {/* Tabs as the main entry */}
+          <Stack.Screen name="Tabs" component={MainTabs} />
+
+          {/* Stack-only screens (not shown in tab bar) */}
+          {/* <Stack.Screen name="FindWC" component={FindWC} /> */}
+          <Stack.Screen name="WcDetails" component={WcDetails} />
+          <Stack.Screen name="Navigate" component={Navigate} />
+          <Stack.Screen name="Survey" component={Survey} />
+          <Stack.Screen name="AddWC" component={AddWC} />
+          <Stack.Screen name="Register" component={Register} />
+        </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
   );

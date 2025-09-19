@@ -448,11 +448,11 @@ export default function FindWC({ route, navigation }: Props) {
             }]}
             onPress={() => {
               if (washroomId != null) {
-                //navigation.navigate("WcDetails", { washroomId });
-                navigation.navigate("Stack", {
-                  screen: "WcDetails",
-                  params: { washroomId },
-                });
+                navigation.navigate("WcDetails", { washroomId });
+                // navigation.navigate("Stack", {
+                //   screen: "WcDetails",
+                //   params: { washroomId },
+                // });
               } else {
                 console.warn("No washroom selected");
               }

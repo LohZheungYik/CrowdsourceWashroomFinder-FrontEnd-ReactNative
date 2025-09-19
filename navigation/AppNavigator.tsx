@@ -1,29 +1,18 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { RootStackParamList } from './types';
-import FindWC from '../tabs/FindWC';
-import AddWC from '../tabs/AddWC';
-
-import WcDetails from '../tabs/WcDetails';
-import Navigate from '../tabs/Navigate';
-import Survey from '../tabs/Survey';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from '../tabs/Home';
+import FindWC from '../tabs/FindWC';
+import Login from '../tabs/Login';
 
+const Tab = createBottomTabNavigator();
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-export default function AppNavigator() {
+export function MainTabs() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <Stack.Screen name="FindWC" component={FindWC} options={{ headerShown: false }} />
-      <Stack.Screen name="WcDetails" component={WcDetails} options={{ headerShown: false }}/>
-      <Stack.Screen name="Navigate" component={Navigate} options={{ headerShown: false }} />
-      <Stack.Screen name="Survey" component={Survey} options={{
-        gestureEnabled: false,       // disables swipe back (iOS)
-        headerBackVisible: false,    // hides back button (RN v6+)
-        
-      }} />
-    </Stack.Navigator>
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="FindWC" component={FindWC} />
+      <Tab.Screen name="Logout" component={Login} />
+    </Tab.Navigator>
   );
 }
+
