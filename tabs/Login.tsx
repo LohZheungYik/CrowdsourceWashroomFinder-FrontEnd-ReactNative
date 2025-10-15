@@ -40,8 +40,7 @@ export default function Login() {
 
     const [isSubmiting, setIsSubmiting] = useState(false);
 
-    type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Survey'>;
-
+    type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
     const navigation = useNavigation<LoginNavigationProp>();
 
 
@@ -57,7 +56,7 @@ export default function Login() {
     }
 
     const validatePassword = (password: string) => {
-        if (password.length > 8) return true;
+        if (password.length >= 8) return true;
         else return false;
     }
 
@@ -109,7 +108,12 @@ export default function Login() {
             await AsyncStorage.setItem("userId", String(user.id));
             await AsyncStorage.setItem("userEmail", user.email);
 
-            navigation.navigate("Home")
+            //navigation.navigate("Home")
+
+            navigation.navigate("Tabs", {
+                screen: "Home",
+                
+            });
 
         } catch (err) {
             showToast("Invalid email or password");
@@ -210,24 +214,24 @@ export default function Login() {
             <View style={{ marginTop: 20, marginBottom: 20, marginHorizontal: "5%" }}>
 
                 <Pressable
-                    onPress={() => {navigation.navigate("Register");}}
-                android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
-                style={({ pressed }) => [{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 15,
-                    elevation: 4,
-                    marginRight: 8,
-                    backgroundColor: "rgba(154, 228, 132, 1)",
-                    opacity: pressed ? 0.7 : 1,
-                }]}>
+                    onPress={() => { navigation.navigate("Register"); }}
+                    android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: false }}
+                    style={({ pressed }) => [{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        borderRadius: 15,
+                        elevation: 4,
+                        marginRight: 8,
+                        backgroundColor: "rgba(154, 228, 132, 1)",
+                        opacity: pressed ? 0.7 : 1,
+                    }]}>
 
-                <Text style={{ color: "black", fontSize: 16 }}>Register</Text>
-            </Pressable>
-        </View>
+                    <Text style={{ color: "black", fontSize: 16 }}>Register</Text>
+                </Pressable>
+            </View>
 
 
         </KeyboardAvoidingView >

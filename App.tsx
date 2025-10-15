@@ -19,11 +19,13 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}
+          initialRouteName="Login">
+          <Stack.Screen name="Login" component={Login} />
+
           {/* Tabs as the main entry */}
           <Stack.Screen name="Tabs" component={MainTabs} />
 
-          <Stack.Screen name="Login" component={Login} /> 
 
           {/* Stack-only screens (not shown in tab bar) */}
           {/* <Stack.Screen name="FindWC" component={FindWC} /> */}

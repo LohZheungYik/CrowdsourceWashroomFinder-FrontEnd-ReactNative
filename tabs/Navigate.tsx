@@ -9,7 +9,7 @@ import { GOOGLE_API_KEY } from '../Constants'
 import GetLocation from 'react-native-get-location';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 
 type NavigateProps = {
   route: {
@@ -274,59 +274,68 @@ export default function Navigate({ route }: NavigateProps) {
         <View style={{ flexDirection: 'row', marginLeft: '2%', marginTop: 20 }}>
           <Pressable
             onPress={() =>
-              navigation.navigate("Survey", {
-                washroomId: route.params.washroomId,
-              })
-            }
-            android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-            style={({ pressed }) => [
-              {
-                flexDirection: 'row',
-                flex: 1,
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 15,
-                elevation: 4,
-                marginRight: 8,
-                backgroundColor: 'rgba(218, 254, 207, 1)',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="checkmark-done" size={16} style={{ marginRight: 6 }} />
-            <Text style={{ fontSize: 16 }}>Mark as Arrived</Text>
-          </Pressable>
+              // navigation.navigate("Survey", {
+              //   washroomId: route.params.washroomId,
+              // })
 
-          <Pressable
-            onPress={() =>
-              //navigation.navigate("FindWC", { washroomId: null })
-              navigation.navigate("Tabs", {
-                        screen: "Find Washroom",
-                        //params: { washroomId },
-                    })
-            } 
-            android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
-            style={({ pressed }) => [
-              {
-                flexDirection: 'row',
-                flex: 1,
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 15,
-                elevation: 4,
-                marginRight: 8,
-                backgroundColor: 'rgba(233, 212, 216, 1)',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: "Survey", params: {
+                    washroomId: route.params.washroomId,
+                  } }],
+                })
+              )
+            }
+          android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+          style={({ pressed }) => [
+            {
+              flexDirection: 'row',
+              flex: 1,
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 15,
+              elevation: 4,
+              marginRight: 8,
+              backgroundColor: 'rgba(218, 254, 207, 1)',
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
           >
-            <Ionicons name="close" size={16} style={{ marginRight: 6 }} />
-            <Text style={{ fontSize: 16 }}>Stop Navigate</Text>
-          </Pressable>
-        </View>
+          <Ionicons name="checkmark-done" size={16} style={{ marginRight: 6 }} />
+          <Text style={{ fontSize: 16 }}>Mark as Arrived</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() =>
+            //navigation.navigate("FindWC", { washroomId: null })
+            navigation.navigate("Tabs", {
+              screen: "Find Washroom",
+              //params: { washroomId },
+            })
+          }
+          android_ripple={{ color: 'rgba(0,0,0,0.1)', borderless: false }}
+          style={({ pressed }) => [
+            {
+              flexDirection: 'row',
+              flex: 1,
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 15,
+              elevation: 4,
+              marginRight: 8,
+              backgroundColor: 'rgba(233, 212, 216, 1)',
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="close" size={16} style={{ marginRight: 6 }} />
+          <Text style={{ fontSize: 16 }}>Stop Navigate</Text>
+        </Pressable>
       </View>
     </View>
+    </View >
   );
 }
