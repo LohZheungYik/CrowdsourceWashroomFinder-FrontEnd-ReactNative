@@ -1,1 +1,1 @@
-ReactNative backend of Crowdsource Washroom Finder
+ReactNative frontend of Crowdsource Washroom Finder
